@@ -1,0 +1,16 @@
+:root {
+  --font-primary: 'Poppins', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-primary);
+  background: #000; /* opcional */
+}
