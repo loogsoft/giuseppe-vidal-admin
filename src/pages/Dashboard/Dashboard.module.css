@@ -1,6 +1,10 @@
 .page {
   width: 100%;
   padding: 18px;
+  height: 80vh;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .top {

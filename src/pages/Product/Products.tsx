@@ -200,6 +200,7 @@ export function Products() {
         className={styles.fab}
         type="button"
         aria-label="Adicionar produto"
+        onClick={() => navigate("/product-details")}
       >
         <FiPlus />
       </button>
