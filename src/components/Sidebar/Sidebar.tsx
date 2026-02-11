@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   FiGrid,
@@ -7,7 +8,14 @@ import {
   FiSettings,
 } from "react-icons/fi";
 import styles from "./Sidebar.module.css";
-import { FileBarChart2Icon } from "lucide-react";
+import {
+  ChevronDown,
+  ClipboardList,
+  FileBarChart2Icon,
+  PackageCheck,
+  PackageSearch,
+  PackageX,
+} from "lucide-react";
 import { IoExitOutline } from "react-icons/io5";
 import { useAuth } from "../../contexts/AuthContext";
 import logo from "../../assets/logo.png";
@@ -15,6 +23,30 @@ import logo from "../../assets/logo.png";
 export function Sidebar() {
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const [reportsOpen, setReportsOpen] = useState(false);
+
+  const reportItems = [
+    {
+      label: "Controle de estoque",
+      to: "/relatorios",
+      icon: <PackageSearch size={25} />,
+    },
+    {
+      label: "Entradas",
+      to: "/relatorios",
+      icon: <PackageCheck size={25} />,
+    },
+    {
+      label: "Saidas",
+      to: "/relatorios",
+      icon: <PackageX size={25} />,
+    },
+    {
+      label: "Produtos",
+      to: "/relatorios",
+      icon: <ClipboardList size={25} />,
+    },
+  ];
 
   function handleLogout() {
     // 1️⃣ Limpa token e estado
@@ -80,15 +112,42 @@ export function Sidebar() {
           </NavLink>
 
           <span className={styles.sectionTitle}>Relatorios</span>
-          <NavLink
-            to="/relatorios"
-            className={({ isActive }) =>
-              isActive ? styles.active : styles.link
+          <button
+            type="button"
+            className={styles.submenuToggle}
+            onClick={() => setReportsOpen((current) => !current)}
+            aria-expanded={reportsOpen}
+          >
+            <span className={styles.submenuTitle}>
+              <FileBarChart2Icon className={styles.icon} />
+              <span>Relatorios</span>
+            </span>
+            <ChevronDown
+              className={
+                reportsOpen ? styles.submenuChevronOpen : styles.submenuChevron
+              }
+            />
+          </button>
+          <div
+            className={
+              reportsOpen ? styles.submenuList : styles.submenuListHidden
             }
           >
-            <FileBarChart2Icon className={styles.icon} />
-            <span>Relatórios</span>
-          </NavLink>
+            {reportItems.map((item) => (
+              <NavLink
+                key={item.label}
+                to={item.to}
+                className={({ isActive }) =>
+                  isActive ? styles.subLinkActive : styles.subLink
+                }
+              >
+                <span className={styles.subIcon}>
+                  {item.icon}
+                </span>
+                <span >{item.label}</span>
+              </NavLink>
+            ))}
+          </div>
         </nav>
       </div>
       <div className={styles.footer}>

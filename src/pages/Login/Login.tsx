@@ -7,19 +7,22 @@ import { useAuth } from "../../contexts/AuthContext";
 import { UserService } from "../../service/User.service";
 import logo from "../../assets/logo.png";
 import { CircularProgress } from "@mui/material";
+import { toast } from "react-toastify";
 type Props = {
   backgroundImageUrl?: string;
-  onSubmit?: (data: {
-    email: string;
-    password: string;
-    remember: boolean;
-  }) => void;
 };
 
 export default function Login({
   backgroundImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQx5T1LvEjeIQBt-UxZLODbdXIF-tr7NXUvdQ&s",
-  onSubmit,
 }: Props) {
+  const requestFailureMessage =
+    "Erro ao processar sua solicitacao. Tente novamente em alguns instantes. Se o problema persistir, entre em contato com o suporte.";
+  const supportPhone = "64999663524";
+  const supportMessage =
+    "Ola! Aqui e do Gerenciamento de Estoque Giuseppe Vidal. Estou com um problema ao acessar o painel, podem me ajudar?";
+  const supportUrl = `https://wa.me/${supportPhone}?text=${encodeURIComponent(
+    supportMessage,
+  )}`;
   const [email, setEmail] = useState("admin.giuseppevidal@gmail.com");
   const [password, setPassword] = useState("giuseppe.vidal@");
   const [remember, setRemember] = useState(true);
@@ -42,19 +45,6 @@ export default function Login({
     return () => window.clearInterval(timer);
   }, [resendCooldown]);
 
-  async function login() {
-    try {
-      setLoading(true);
-      const payload = { email, password };
-      const data = await UserService.login(payload);
-      localStorage.setItem("token", data.token);
-      contextLogin(data.token);
-      navigate("/dashboard");
-    } catch (error) {
-      setLoading(false);
-      alert("Email ou senha inválidos");
-    }
-  }
   useEffect(() => {
     if (step === "verify") {
       setTimeout(() => {
@@ -68,50 +58,54 @@ export default function Login({
     }
   }, [code, step]);
 
-  async function verifyEmail() {
-    try {
-      setLoading(true);
-      const payload = { email, password };
-      const data = await UserService.login(payload);
-      setStep("verify");
-      setLoading(false);
-      if (!data) {
-        alert("Nao foi possivel enviar o codigo de verificacao");
-        return;
-      }
-    } catch (error) {
-      setLoading(false);
-      alert("Erro na requisicao");
-    }
+  function showErrorToast() {
+    toast.error(
+      <span>
+        {requestFailureMessage} {" "}
+        <a
+          className={styles.toastLink}
+          href={supportUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Falar no WhatsApp
+        </a>
+      </span>,
+    );
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
     if (step === "login") {
-      onSubmit?.({ email, password, remember });
-      // setStep("verify");
+      try {
+        setLoading(true);
+        await UserService.verifyEmail({ email, password });
+        setStep("verify");
+      } catch (error) {
+        showErrorToast();
+      } finally {
+        setLoading(false);
+      }
       return;
     }
+
     try {
       setLoading(true);
-      const payload = {
+
+      const verify = await UserService.verificationToken({
         email,
         code: code.join(""),
-      };
-      const verify = await UserService.verificationToken(payload);
-      if (!verify) {
-        setCode(["", "", "", "", "", ""]);
-        codeRefs.current[0]?.focus();
-        alert("Codigo invalido");
-        setLoading(false);
-        return;
-      }
+      });
 
-      await login();
-    } catch (error) {
+      localStorage.setItem("token", verify.token);
+      contextLogin(verify.token);
+
+      navigate("/dashboard");
+    } catch {
       setCode(["", "", "", "", "", ""]);
       codeRefs.current[0]?.focus();
-      alert("Codigo invalido");
+      showErrorToast();
     } finally {
       setLoading(false);
     }
@@ -123,12 +117,12 @@ export default function Login({
     }
     try {
       setLoading(true);
-      await UserService.login({ email, password });
+      await UserService.verifyEmail({ email, password });
       setResendCooldown(60);
       setCode(["", "", "", "", "", ""]);
       codeRefs.current[0]?.focus();
     } catch (error) {
-      alert("Nao foi possivel reenviar o codigo");
+      showErrorToast();
     } finally {
       setLoading(false);
     }
@@ -253,11 +247,7 @@ export default function Login({
                   <span>Manter conectado por 30 dias</span>
                 </label>
 
-                <button
-                  className={styles.submit}
-                  type="submit"
-                  onClick={() => verifyEmail()}
-                >
+                <button className={styles.submit} type="submit">
                   {loading ? (
                     <CircularProgress
                       size={20}
@@ -275,7 +265,15 @@ export default function Login({
                 </button>
 
                 <div className={styles.support}>
-                  Ainda nao tem acesso? <span>Fale com o suporte</span>
+                  Ainda nao tem acesso?{" "}
+                  <a
+                    className={styles.supportLink}
+                    href={supportUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Fale com o suporte
+                  </a>
                 </div>
                 <div className={styles.copy}>© 2026 GIUSEPPE VIDAL.</div>
               </>
@@ -329,7 +327,15 @@ export default function Login({
                     : "Reenviar codigo"}
                 </button>
                 <div className={styles.helpLink}>
-                  Nao recebeu o codigo? <span>Fale com suporte</span>
+                  Nao recebeu o codigo?{" "}
+                  <a
+                    className={styles.supportLink}
+                    href={supportUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Fale com suporte
+                  </a>
                 </div>
               </div>
             )}

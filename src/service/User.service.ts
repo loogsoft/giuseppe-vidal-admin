@@ -4,9 +4,9 @@ import type { LoginResponseDto } from "../dtos/response/login-response.dto";
 import api from "./api";
 
 export const UserService = {
-  login: async (dto: LoginRequestDto) => {
+  verifyEmail: async (dto: LoginRequestDto) => {
     const response = await api.post(
-      "/users/login",
+      "/users/verify-email",
       dto
     );
     return response.data;

@@ -8,13 +8,14 @@
   flex-direction: column;
   justify-content: space-between;
   box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin-bottom: 28px;
 }
 
 .brandIcon {
@@ -52,6 +53,97 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.submenuToggle {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.submenuToggle:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f2b632;
+}
+
+.submenuTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.submenuChevron {
+  transition: transform 0.2s ease;
+}
+
+.submenuChevronOpen {
+  transform: rotate(180deg);
+  transition: transform 0.2s ease;
+}
+
+.submenuList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 0 4px 26px;
+  max-height: 400px;
+  opacity: 1;
+  transition: max-height 0.25s ease, opacity 0.2s ease;
+}
+
+.submenuListHidden {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  padding: 0 0 0 26px;
+  transition: max-height 0.25s ease, opacity 0.2s ease;
+}
+
+.subLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0px;
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.subLink:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f2b632;
+}
+
+.subLinkActive {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f2b632;
+  text-decoration: none;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.subIcon {
+  width: 25px;
+  height: 25px;
+  border-radius: 8px;
+  background-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
 }
 
 .sectionTitle {
