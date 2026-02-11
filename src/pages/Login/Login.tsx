@@ -20,7 +20,7 @@ export default function Login({
   backgroundImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQx5T1LvEjeIQBt-UxZLODbdXIF-tr7NXUvdQ&s",
   onSubmit,
 }: Props) {
-  const [email, setEmail] = useState("consultor.giuseppevidal@gmail.com");
+  const [email, setEmail] = useState("admin.giuseppevidal@gmail.com");
   const [password, setPassword] = useState("giuseppe.vidal@");
   const [remember, setRemember] = useState(true);
   const [showPass, setShowPass] = useState(false);
@@ -55,6 +55,18 @@ export default function Login({
       alert("Email ou senha inválidos");
     }
   }
+  useEffect(() => {
+    if (step === "verify") {
+      setTimeout(() => {
+        codeRefs.current[0]?.focus();
+      }, 0);
+    }
+  }, [step]);
+  useEffect(() => {
+    if (step === "verify" && code.every((digit) => digit !== "") && !loading) {
+      handleSubmit(new Event("submit") as any);
+    }
+  }, [code, step]);
 
   async function verifyEmail() {
     try {
