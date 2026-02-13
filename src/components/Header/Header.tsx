@@ -1,5 +1,5 @@
 import styles from "./Header.module.css";
-import { FiSearch, FiBell, FiMoon, FiSun, FiSliders } from "react-icons/fi";
+import { FiSearch, FiBell, FiMoon, FiSun} from "react-icons/fi";
 import { useTheme } from "../../contexts/useTheme";
 
 type HeaderProps = {
