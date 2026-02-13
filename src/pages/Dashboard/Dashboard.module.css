@@ -65,79 +65,81 @@
 }
 
 .metrics {
-  display: flex;
-  justify-content: space-around;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
 }
 
 .metricCard {
-  background: linear-gradient(135deg, var(--surface-muted) 0%, var(--surface) 70%);
+  background: var(--surface);
   border: 1px solid var(--border-default);
-  border-radius: 20px;
-  padding: 20px;
-  min-height: 100px;
-  width: 300px;
-  box-shadow: var(--shadow-1);
-  text-align: center;
+  border-radius: 24px;
+  padding: 18px 20px 20px;
+  min-height: 120px;
+  width: 280px;
+  box-shadow: var(--shadow-2);
+  text-align: left;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-start;
+  justify-content: flex-start;
 }
 
 .metricHeader {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 8px;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 14px;
 }
 
 .metricIcon {
-  width: 38px;
-  height: 38px;
-  border-radius: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--highlight-primary);
-  color: #1b140e;
+  background: #fff4ce;
+  color: #f1b700;
   font-size: 18px;
 }
 
 .metricBadge {
   font-size: 11px;
-  font-weight: 900;
+  font-weight: 800;
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--status-success-bg);
-  color: var(--status-success);
+  background: rgba(34, 197, 94, 0.16);
+  color: #16a34a;
 }
 
 .metricBadgeNeutral {
-  background: var(--surface-muted);
-  color: var(--text-muted);
+  background: #edf2f7;
+  color: #94a3b8;
 }
 
 .metricLabel {
-  color: var(--text-muted);
-  font-size: 9px;
+  color: #7b8794;
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
 }
 
 .metricValue {
-  margin-top: 4px;
-  color: var(--text-primary);
-  font-size: 20px;
-  font-weight: 800;
+  margin-top: 6px;
+  color: #111827;
+  font-size: 28px;
+  font-weight: 900;
 }
 
 .metricValueSmall {
-  margin-top: 4px;
-  color: var(--text-primary);
-  font-size: 18px;
-  font-weight: 700;
+  margin-top: 6px;
+  color: #111827;
+  font-size: 24px;
+  font-weight: 900;
 }
 
 .metricSub {
@@ -151,14 +153,14 @@
   margin-top: 10px;
   background: var(--surface);
   border: 1px solid var(--border-default);
-  border-radius: 20px;
-  padding: 18px;
+  border-radius: 28px;
+  padding: 22px 24px 24px;
   box-shadow: var(--shadow-2);
 }
 
 .panelHeader {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
 }
@@ -166,7 +168,7 @@
 .panelTitle {
   color: var(--text-primary);
   font-weight: 800;
-  font-size: 15px;
+  font-size: 17px;
 }
 
 .panelSub {
@@ -178,15 +180,16 @@
 .legend {
   display: inline-flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   font-size: 11px;
-  font-weight: 700;
-  color: var(--text-secondary);
+  font-weight: 800;
+  color: #8a94a6;
+  letter-spacing: 0.08em;
 }
 
 .legendItem {
   position: relative;
-  padding-left: 14px;
+  padding-left: 16px;
 }
 
 .legendItem::before {
@@ -194,26 +197,27 @@
   position: absolute;
   left: 0;
   top: 50%;
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
   background: var(--highlight-primary);
   transform: translateY(-50%);
 }
 
 .legendMuted {
-  color: var(--text-muted);
+  color: #c7ceda;
 }
 
 .legendMuted::before {
-  background: var(--border-default);
+  background: #dfe6f1;
 }
 
 .chartWrap {
-  margin-top: 12px;
-  border-radius: 16px;
+  margin-top: 16px;
+  border-radius: 20px;
   overflow: hidden;
   background: var(--surface);
+  padding: 8px 10px 12px;
 }
 
 .tooltip {

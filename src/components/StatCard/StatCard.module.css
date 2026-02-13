@@ -1,0 +1,75 @@
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  border-radius: 24px;
+  padding: 18px 20px 20px;
+  min-height: 120px;
+  box-shadow: var(--shadow-2);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff4ce;
+  color: #f1b700;
+  font-size: 18px;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.16);
+  color: #16a34a;
+}
+
+.badgeNeutral {
+  background: #edf2f7;
+  color: #94a3b8;
+}
+
+.label {
+  color: #7b8794;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.value {
+  margin-top: 6px;
+  color: #111827;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.valueSmall {
+  font-size: 24px;
+}
+
+.sub {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}

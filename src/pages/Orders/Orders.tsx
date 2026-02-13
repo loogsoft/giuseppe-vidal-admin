@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "./Orders.module.css";
-import { FiChevronDown, FiSearch } from "react-icons/fi";
+import { FiChevronDown, FiClock, FiSearch, FiTag, FiTrendingDown } from "react-icons/fi";
+import StatCard from "../../components/StatCard/StatCard";
 type StockItem = {
   id: string;
   name: string;
@@ -213,21 +214,24 @@ export function Orders() {
       </header>
 
       <section className={styles.metrics}>
-        <div className={styles.metricCard}>
-          <div className={styles.metricLabel}>Itens pendentes</div>
-          <div className={styles.metricValue}>{totalItems}</div>
-          <div className={styles.metricFoot}>Produtos com baixa</div>
-        </div>
-        <div className={styles.metricCard}>
-          <div className={styles.metricLabel}>Total saida (hoje)</div>
-          <div className={styles.metricValue}>{totalOut} un</div>
-          <div className={styles.metricFoot}>Ultimas 24h</div>
-        </div>
-        <div className={styles.metricCard}>
-          <div className={styles.metricLabel}>Motivo mais comum</div>
-          <div className={styles.metricValue}>Venda Manual</div>
-          <div className={styles.metricFoot}>Ultimas 24h</div>
-        </div>
+        <StatCard
+          label="Itens pendentes"
+          value={totalItems}
+          sub="Produtos com baixa"
+          icon={<FiClock />}
+        />
+        <StatCard
+          label="Total saida (hoje)"
+          value={`${totalOut} un`}
+          sub="Ultimas 24h"
+          icon={<FiTrendingDown />}
+        />
+        <StatCard
+          label="Motivo mais comum"
+          value="Venda Manual"
+          sub="Ultimas 24h"
+          icon={<FiTag />}
+        />
       </section>
 
       <section className={styles.toolbar}>

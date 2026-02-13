@@ -4,14 +4,19 @@ import {
   FiChevronLeft,
   FiChevronRight,
   FiFilter,
+  FiGrid,
+  FiPackage,
   FiPlus,
   FiSearch,
+  FiUserCheck,
+  FiUsers,
 } from "react-icons/fi";
 import { CgFileAdd } from "react-icons/cg";
 import ProductCard from "../../components/ProductCard";
 import styles from "./Supplier.module.css";
 import { SupplierService } from "../../service/Supplier.service";
 import type { SupplierResponseDto } from "../../dtos/response/supplier-response.dto";
+import StatCard from "../../components/StatCard/StatCard";
 
 type SupplierStatus = "active" | "inactive";
 
@@ -186,26 +191,26 @@ export function Supplier() {
       </div>
 
       <div className={styles.stats}>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>TOTAL DE FORNECEDORES</div>
-          <div className={styles.statValue}>
-            {totalSuppliers.toLocaleString("pt-BR")}
-          </div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>FORNECEDORES ATIVOS</div>
-          <div className={styles.statValue}>
-            {activeSuppliers.toLocaleString("pt-BR")}
-          </div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>PEDIDOS EM ABERTO</div>
-          <div className={styles.statValue}>{openOrders}</div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>CATEGORIAS</div>
-          <div className={styles.statValue}>{categoriesTotal}</div>
-        </div>
+        <StatCard
+          label="TOTAL DE FORNECEDORES"
+          value={totalSuppliers.toLocaleString("pt-BR")}
+          icon={<FiUsers />}
+        />
+        <StatCard
+          label="FORNECEDORES ATIVOS"
+          value={activeSuppliers.toLocaleString("pt-BR")}
+          icon={<FiUserCheck />}
+        />
+        <StatCard
+          label="PEDIDOS EM ABERTO"
+          value={openOrders}
+          icon={<FiPackage />}
+        />
+        <StatCard
+          label="CATEGORIAS"
+          value={categoriesTotal}
+          icon={<FiGrid />}
+        />
       </div>
 
       <div className={styles.gridContainer}>

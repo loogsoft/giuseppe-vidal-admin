@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type JSX } from "react";
 import styles from "./Dashboard.module.css";
 import {
   ResponsiveContainer,
@@ -9,8 +9,9 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { FiCalendar, FiEye } from "react-icons/fi";
+import { FiAward, FiBox, FiCalendar, FiDollarSign, FiEye, FiShoppingCart } from "react-icons/fi";
 import { useTheme } from "../../contexts/useTheme";
+import StatCard from "../../components/StatCard/StatCard";
 
 type MetricCard = {
   label: string;
@@ -62,11 +63,18 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         badgeTone: "success",
       },
       {
-        label: "FATURAMENTO BRUTO",
+        label: "FATURAMENTO",
         value: "R$ 6.420",
         badge: "+1.4%",
         icon: "money",
         badgeTone: "success",
+      },
+      {
+        label: "ITENS EM ESTOQUE",
+        value: "12.450",
+        badge: "Normal",
+        icon: "ticket",
+        badgeTone: "neutral",
       },
     ],
     chart: [
@@ -131,13 +139,19 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         badgeTone: "success",
       },
       {
-        label: "FATURAMENTO BRUTO",
+        label: "FATURAMENTO",
         value: "R$ 158.240",
         badge: "+8.2%",
         icon: "money",
         badgeTone: "success",
       },
-   
+      {
+        label: "ITENS EM ESTOQUE",
+        value: "12.450",
+        badge: "Normal",
+        icon: "ticket",
+        badgeTone: "neutral",
+      },
     ],
     chart: [
       { name: "SEG", value: 48 },
@@ -201,11 +215,18 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         badgeTone: "success",
       },
       {
-        label: "FATURAMENTO BRUTO",
+        label: "FATURAMENTO",
         value: "R$ 612.980",
         badge: "+4.1%",
         icon: "money",
         badgeTone: "success",
+      },
+      {
+        label: "ITENS EM ESTOQUE",
+        value: "12.450",
+        badge: "Normal",
+        icon: "ticket",
+        badgeTone: "neutral",
       },
     ],
     chart: [
@@ -259,12 +280,12 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
   },
 };
 
-function MetricIcon({ kind }: { kind: MetricCard["icon"] }) {
-  if (kind === "money") return <span className={styles.metricIcon}>💰</span>;
-  if (kind === "orders") return <span className={styles.metricIcon}>🛒</span>;
-  if (kind === "ticket") return <span className={styles.metricIcon}>🎟️</span>;
-  return <span className={styles.metricIcon}>🏆</span>;
-}
+const METRIC_ICONS: Record<MetricCard["icon"], JSX.Element> = {
+  money: <FiDollarSign />,
+  orders: <FiShoppingCart />,
+  ticket: <FiBox />,
+  top: <FiAward />,
+};
 
 function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
@@ -347,29 +368,15 @@ export function Dashboard() {
 
       <div className={styles.metrics}>
         {periodData.metrics.map((m) => (
-          <div key={m.label} className={styles.metricCard}>
-            <div className={styles.metricHeader}>
-              <MetricIcon kind={m.icon} />
-              <span
-                className={`${styles.metricBadge} ${
-                  m.badgeTone === "neutral" ? styles.metricBadgeNeutral : ""
-                }`}
-              >
-                {m.badge}
-              </span>
-            </div>
-
-            <div className={styles.metricLabel}>{m.label}</div>
-
-            {m.sub ? (
-              <>
-                <div className={styles.metricValueSmall}>{m.value}</div>
-                <div className={styles.metricSub}>{m.sub}</div>
-              </>
-            ) : (
-              <div className={styles.metricValue}>{m.value}</div>
-            )}
-          </div>
+          <StatCard
+            key={m.label}
+            label={m.label}
+            value={m.value}
+            badge={m.badge}
+            badgeTone={m.badgeTone}
+            icon={METRIC_ICONS[m.icon]}
+            sub={m.sub}
+          />
         ))}
       </div>
 
@@ -377,13 +384,15 @@ export function Dashboard() {
         <div className={styles.panelHeader}>
           <div>
             <div className={styles.panelTitle}>Performance de Vendas</div>
-            <div className={styles.panelSub}>Análise comparativa semanal</div>
+            <div className={styles.panelSub}>
+              Análise comparativa de volume diário
+            </div>
           </div>
 
           <div className={styles.legend}>
-            <span className={styles.legendItem}>Esta semana</span>
+            <span className={styles.legendItem}>HOJE</span>
             <span className={`${styles.legendItem} ${styles.legendMuted}`}>
-              Semana passada
+              ONTEM
             </span>
           </div>
         </div>
@@ -392,7 +401,7 @@ export function Dashboard() {
           <ResponsiveContainer width="100%" height={260}>
             <BarChart
               data={periodData.chart}
-              margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+              margin={{ top: 8, right: 8, left: 8, bottom: 6 }}
             >
               <defs>
                 <linearGradient id="barFill" x1="0" y1="0" x2="0" y2="1">
@@ -404,6 +413,7 @@ export function Dashboard() {
               <XAxis
                 dataKey="name"
                 tick={{ fill: chartColors.muted, fontSize: 11 }}
+                tickMargin={10}
                 axisLine={false}
                 tickLine={false}
               />
@@ -412,8 +422,8 @@ export function Dashboard() {
               <Bar
                 dataKey="value"
                 fill="url(#barFill)"
-                radius={[10, 10, 10, 10]}
-                barSize={10}
+                radius={[12, 12, 12, 12]}
+                barSize={12}
               />
             </BarChart>
           </ResponsiveContainer>

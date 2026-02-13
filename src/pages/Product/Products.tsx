@@ -1,7 +1,11 @@
 import styles from "./Product.module.css";
 import { useEffect, useMemo, useState } from "react";
 import {
+  FiAlertTriangle,
+  FiBox,
+  FiDollarSign,
   FiFilter,
+  FiGrid,
   FiPlus,
   FiSearch,
 } from "react-icons/fi";
@@ -12,6 +16,7 @@ import { ProductService } from "../../service/Product.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import { useNavigate } from "react-router-dom";
+import StatCard from "../../components/StatCard/StatCard";
 
 export function Products() {
   const [activeCat, setActiveCat] = useState<CategoryKey>("all");
@@ -190,29 +195,29 @@ export function Products() {
       </div>
 
       <div className={styles.stats}>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>TOTAL DE PRODUTOS</div>
-          <div className={styles.statValue}>{counts.all.toLocaleString("pt-BR")}</div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>ESTOQUE BAIXO</div>
-          <div className={`${styles.statValue} ${styles.statValueWarn}`}>
-            {lowStock}
-          </div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>VALOR TOTAL</div>
-          <div className={styles.statValue}>
-            {totalValue.toLocaleString("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            })}
-          </div>
-        </div>
-        <div className={styles.statCard}>
-          <div className={styles.statLabel}>CATEGORIAS</div>
-          <div className={styles.statValue}>{categoryTotal}</div>
-        </div>
+        <StatCard
+          label="TOTAL DE PRODUTOS"
+          value={counts.all.toLocaleString("pt-BR")}
+          icon={<FiBox />}
+        />
+        <StatCard
+          label="ESTOQUE BAIXO"
+          value={lowStock}
+          icon={<FiAlertTriangle />}
+        />
+        <StatCard
+          label="VALOR TOTAL"
+          value={totalValue.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          })}
+          icon={<FiDollarSign />}
+        />
+        <StatCard
+          label="CATEGORIAS"
+          value={categoryTotal}
+          icon={<FiGrid />}
+        />
       </div>
 
       <div className={styles.gridContainer}>
