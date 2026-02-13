@@ -11,7 +11,6 @@ import {
   FiTrash2,
 } from "react-icons/fi";
 import { GiTrousers, GiTShirt } from "react-icons/gi";
-import { useMemo } from "react";
 import type { CSSProperties } from "react";
 import type { ProductCategoryEnum } from "../dtos/enums/product-category.enum";
 import type { ImageResponse } from "../dtos/response/image-response.dto";
@@ -78,12 +77,10 @@ export default function ProductCard(props: Props) {
   const status =
     props.type === "supplier" ? ProductStatusEnum.ACTIVED : props.isActive;
 
-  const supplierAvatarStyle = useMemo(() => {
-    if (props.type !== "supplier") return undefined;
-    return { backgroundColor: props.avatarColor } as CSSProperties;
-  }, [props.avatarColor, props.type]);
-
   if (props.type === "supplier") {
+    const supplierAvatarStyle = props.avatarColor
+      ? ({ backgroundColor: props.avatarColor } as CSSProperties)
+      : undefined;
     const statusLabel = props.isActive ? "ATIVO" : "INATIVO";
     return (
       <div className={`${styles.card} ${styles.supplierCard}`}>

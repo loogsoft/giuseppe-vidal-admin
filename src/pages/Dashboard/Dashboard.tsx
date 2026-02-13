@@ -9,7 +9,6 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
-  type TooltipProps,
 } from "recharts";
 import { FiCalendar, FiEye } from "react-icons/fi";
 import Colors from "../../themes/Colors";
@@ -45,6 +44,12 @@ type PeriodData = {
   metrics: MetricCard[];
   chart: ChartPoint[];
   recent: RecentSale[];
+};
+
+type CustomTooltipProps = {
+  active?: boolean;
+  payload?: Array<{ value?: number | string }>;
+  label?: string;
 };
 
 const DASHBOARD_MOCK: Record<Period, PeriodData> = {
@@ -262,7 +267,7 @@ function MetricIcon({ kind }: { kind: MetricCard["icon"] }) {
   return <span className={styles.metricIcon}>🏆</span>;
 }
 
-function CustomTooltip({ active, payload, label }: TooltipProps<number, string>) {
+function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   if (!active || !payload?.length) return null;
   const value = Number(payload[0]?.value ?? 0);
   return (

@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import styles from "./OrderDetails.module.css";
 import Colors from "../../themes/Colors";
 import { useNavigate } from "react-router-dom";
