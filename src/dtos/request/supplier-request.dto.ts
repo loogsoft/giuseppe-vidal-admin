@@ -1,6 +1,4 @@
-const SUPPLIER_STATUS = ["active", "inactive"] as const;
-
-export type SupplierStatus = (typeof SUPPLIER_STATUS)[number];
+export type SupplierStatus = "active" | "inactive";
 
 export interface SupplierRequestDto {
   name: string;
