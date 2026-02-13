@@ -9,12 +9,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const fetchUser = useCallback(async () => {
     const me = await UserService.getMe();
-    let profile = { id: me.id, email: me.email };
+    let profile: { id: string; email?: string; name?: string } = {
+      id: me.id,
+      email: me.email,
+    };
     try {
       const full = await UserService.findOne(me.id);
       profile = {
         id: full.id ?? me.id,
-        name: full.name ?? undefined,
+        name: full.name,
         email: full.email ?? me.email,
       };
     } catch {
