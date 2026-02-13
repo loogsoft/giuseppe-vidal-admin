@@ -2,11 +2,20 @@ import type { ProductStatusEnum } from "../dtos/enums/product-status.enum";
 
 export type CategoryKey =
   | "all"
-  | "hamburgers"
-  | "sides"
-  | "drinks"
-  | "desserts"
-  | "kids";
+  | "shirt"
+  | "tshirt"
+  | "polo"
+  | "shorts"
+  | "jacket"
+  | "pants"
+  | "dress"
+  | "sweater"
+  | "hoodie"
+  | "underwear"
+  | "footwear"
+  | "belt"
+  | "wallet"
+  | "sunglasses";
 
 export interface Product {
   id: string;

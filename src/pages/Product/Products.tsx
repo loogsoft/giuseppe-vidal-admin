@@ -2,8 +2,6 @@ import type { CSSProperties } from "react";
 import styles from "./Product.module.css";
 import { useEffect, useMemo, useState } from "react";
 import {
-  FiChevronLeft,
-  FiChevronRight,
   FiFilter,
   FiPlus,
   FiSearch,
@@ -19,22 +17,42 @@ import Colors from "../../themes/Colors";
 
 export function Products() {
   const [activeCat, setActiveCat] = useState<CategoryKey>("all");
-  const [page, setPage] = useState(1);
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const categoryFromKey = (key: CategoryKey) => {
     switch (key) {
-      case "hamburgers":
-        return ProductCategoryEnum.FOOD;
-      case "sides":
-        return ProductCategoryEnum.ADDON;
-      case "drinks":
-        return ProductCategoryEnum.DRINK;
-      case "desserts":
-        return ProductCategoryEnum.DESSERT;
+      case "shirt":
+        return ProductCategoryEnum.SHIRT;
+      case "tshirt":
+        return ProductCategoryEnum.TSHIRT;
+      case "polo":
+        return ProductCategoryEnum.POLO;
+      case "shorts":
+        return ProductCategoryEnum.SHORTS;
+      case "jacket":
+        return ProductCategoryEnum.JACKET;
+      case "pants":
+        return ProductCategoryEnum.PANTS;
+      case "dress":
+        return ProductCategoryEnum.DRESS;
+      case "sweater":
+        return ProductCategoryEnum.SWEATER;
+      case "hoodie":
+        return ProductCategoryEnum.HOODIE;
+      case "underwear":
+        return ProductCategoryEnum.UNDERWEAR;
+      case "footwear":
+        return ProductCategoryEnum.FOOTWEAR;
+      case "belt":
+        return ProductCategoryEnum.BELT;
+      case "wallet":
+        return ProductCategoryEnum.WALLET;
+      case "sunglasses":
+        return ProductCategoryEnum.SUNGLASSES;
       default:
         return null;
     }
@@ -54,15 +72,7 @@ export function Products() {
     return current.filter((p) => p.name.toLowerCase().includes(trimmed));
   }, [activeCat, products, query]);
 
-  const pageSize = 4;
   const total = filtered.length;
-  const maxPage = Math.max(1, Math.ceil(total / pageSize));
-  const currentPage = Math.min(page, maxPage);
-
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filtered.slice(start, start + pageSize);
-  }, [filtered, currentPage]);
 
   const counts = useMemo(() => {
     const countBy = (category: ProductCategoryEnum) =>
@@ -70,20 +80,40 @@ export function Products() {
 
     return {
       all: products.length,
-      hamburgers: countBy(ProductCategoryEnum.FOOD),
-      sides: countBy(ProductCategoryEnum.ADDON),
-      drinks: countBy(ProductCategoryEnum.DRINK),
-      desserts: countBy(ProductCategoryEnum.DESSERT),
+      shirt: countBy(ProductCategoryEnum.SHIRT),
+      tshirt: countBy(ProductCategoryEnum.TSHIRT),
+      polo: countBy(ProductCategoryEnum.POLO),
+      shorts: countBy(ProductCategoryEnum.SHORTS),
+      jacket: countBy(ProductCategoryEnum.JACKET),
+      pants: countBy(ProductCategoryEnum.PANTS),
+      dress: countBy(ProductCategoryEnum.DRESS),
+      sweater: countBy(ProductCategoryEnum.SWEATER),
+      hoodie: countBy(ProductCategoryEnum.HOODIE),
+      underwear: countBy(ProductCategoryEnum.UNDERWEAR),
+      footwear: countBy(ProductCategoryEnum.FOOTWEAR),
+      belt: countBy(ProductCategoryEnum.BELT),
+      wallet: countBy(ProductCategoryEnum.WALLET),
+      sunglasses: countBy(ProductCategoryEnum.SUNGLASSES),
     };
   }, [products]);
 
   const CATEGORIES: { key: CategoryKey; label: string }[] = useMemo(
     () => [
       { key: "all", label: `Todos ${counts.all}` },
-      { key: "hamburgers", label: "Comidas" },
-      { key: "sides", label: "Acompanhamentos " },
-      { key: "drinks", label: "Bebidas" },
-      { key: "desserts", label: "Sobremesas" },
+      { key: "shirt", label: "Camisa" },
+      { key: "tshirt", label: "Camiseta" },
+      { key: "polo", label: "Polo" },
+      { key: "shorts", label: "Shorts" },
+      { key: "jacket", label: "Jaqueta" },
+      { key: "pants", label: "Calça" },
+      { key: "dress", label: "Vestido" },
+      { key: "sweater", label: "Suéter" },
+      { key: "hoodie", label: "Moletom" },
+      { key: "underwear", label: "Cueca" },
+      { key: "footwear", label: "Calçado" },
+      { key: "belt", label: "Cinto" },
+      { key: "wallet", label: "Carteira" },
+      { key: "sunglasses", label: "Óculos" },
     ],
     [counts],
   );
@@ -126,7 +156,7 @@ export function Products() {
         setError(null);
         const data = await ProductService.findAll();
         setProducts(data);
-      } catch (err: any) {
+      } catch (err) {
         console.error(err);
         setError("Erro ao carregar produtos");
       } finally {
@@ -136,6 +166,24 @@ export function Products() {
 
     fetchProducts();
   }, []);
+
+  const handleDelete = async (id: string) => {
+    if (deletingId) return;
+
+    const confirmed = window.confirm("Deseja excluir este produto?");
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(id);
+      await ProductService.remove(id);
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      console.error(err);
+      setError("Erro ao excluir produto");
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div className={styles.page} style={colorVars}>
@@ -182,95 +230,74 @@ export function Products() {
         </div>
       </div>
 
-      <div className={styles.filters}>
-        <div className={styles.search}>
-          <FiSearch className={styles.searchIcon} />
-          <input
-            className={styles.searchInput}
-            type="text"
-            placeholder="Buscar produtos..."
-            value={query}
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setPage(1);
-            }}
-          />
-        </div>
-
-        <div className={styles.filterActions}>
-          <select
-            className={styles.categorySelect}
-            value={activeCat}
-            onChange={(event) => {
-              setActiveCat(event.target.value as CategoryKey);
-              setPage(1);
-            }}
-          >
-            {CATEGORIES.map((c) => (
-              <option key={c.key} value={c.key}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-          <button className={styles.filterBtn} type="button">
-            <FiFilter />
-            Filtros
-          </button>
-        </div>
-      </div>
-
-      {loading ? (
-        <div style={{ padding: 12 }}>Carregando...</div>
-      ) : error ? (
-        <div style={{ padding: 12 }}>{error}</div>
-      ) : (
-        <div className={styles.grid}>
-          {paginated.map((p) => (
-            <ProductCard
-              key={p.id}
-              id={p.id}
-              name={p.name}
-              description={p.description}
-              category={p.category}
-              price={p.price}
-              imageUrl={p.images}
-              isActive={p.isActive}
-              stockEnabled={p.stockEnabled}
-              stock={p.stock}
-              available
-              onEdit={() => {}}
-              onDelete={() => {}}
-              onToggleAvailable={() => {}}
-              navigateTo="/product-details"
+      <div className={styles.gridContainer}>
+        <div className={styles.filters}>
+          <div className={styles.search}>
+            <FiSearch className={styles.searchIcon} />
+            <input
+              className={styles.searchInput}
+              type="text"
+              placeholder="Buscar produtos..."
+              value={query}
+              onChange={(event) => {
+                setQuery(event.target.value);
+              }}
             />
-          ))}
+          </div>
+
+          <div className={styles.filterActions}>
+            <select
+              className={styles.categorySelect}
+              value={activeCat}
+              onChange={(event) => {
+                setActiveCat(event.target.value as CategoryKey);
+              }}
+            >
+              {CATEGORIES.map((c) => (
+                <option key={c.key} value={c.key}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            <button className={styles.filterBtn} type="button">
+              <FiFilter />
+              Filtros
+            </button>
+          </div>
         </div>
-      )}
+
+        {loading ? (
+          <div style={{ padding: 12 }}>Carregando...</div>
+        ) : error ? (
+          <div style={{ padding: 12 }}>{error}</div>
+        ) : (
+          <div className={styles.grid}>
+            {filtered.map((p) => (
+              <ProductCard
+                key={p.id}
+                id={p.id}
+                name={p.name}
+                description={p.description}
+                category={p.category}
+                price={p.price}
+                imageUrl={p.images}
+                isActive={p.isActive}
+                stockEnabled={p.stockEnabled}
+                stock={p.stock}
+                available
+                onEdit={() => {}}
+                onDelete={(id) => handleDelete(id)}
+                onToggleAvailable={() => {}}
+                navigateTo="/product-details"
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className={styles.bottom}>
         <div className={styles.counter}>
-          Exibindo {paginated.length} de {total} produtos cadastrados
-        </div>
-
-        <div className={styles.pager}>
-          <button
-            type="button"
-            className={styles.pagerBtn}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            aria-label="Anterior"
-            disabled={currentPage <= 1}
-          >
-            <FiChevronLeft />
-          </button>
-          <button
-            type="button"
-            className={styles.pagerBtn}
-            onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
-            aria-label="Próximo"
-            disabled={currentPage >= maxPage}
-          >
-            <FiChevronRight />
-          </button>
+          Exibindo {total} produtos cadastrados
         </div>
       </div>
 

@@ -19,4 +19,12 @@ export const UserService = {
     );
     return response.data;
   },
+
+  activate: async (body: string): Promise<string> => {
+    const response = await api.post<string>(
+      "/users/activate-api",
+      { body }
+    );
+    return response.data;
+  },
 };

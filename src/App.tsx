@@ -6,7 +6,9 @@ import { Products } from "./pages/Product/Products";
 import { ProductsDetails } from "./pages/Product/ProductsDetails";
 import OrderDetails from "./pages/Orders/OrdersDetails";
 import Login from "./pages/Login/Login";
-import { useAuth } from "./contexts/AuthContext";
+import { useAuth } from "./contexts/useAuth";
+import { Supplier } from "./pages/supplier/Supplier";
+import { SupplierDetails } from "./pages/supplier/SupplierDetails";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -31,6 +33,8 @@ export default function App() {
         <Route path="/produtos" element={<Products />} />
         <Route path="/product-details/:id?" element={<ProductsDetails />} />
         <Route path="/orders-details" element={<OrderDetails />} />
+        <Route path="/suppliers" element={<Supplier />} />
+        <Route path="/supplier-details/:id?" element={<SupplierDetails />} />
       </Route>
     </Routes>
   );

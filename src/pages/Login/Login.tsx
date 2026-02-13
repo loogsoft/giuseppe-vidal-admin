@@ -1,16 +1,20 @@
-import { useEffect, useRef, useState } from "react";
+import type { CSSProperties, FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Login.module.css";
 import Colors from "../../themes/Colors";
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../contexts/useAuth";
 import { UserService } from "../../service/User.service";
 import logo from "../../assets/logo.png";
 import { CircularProgress } from "@mui/material";
 import { toast } from "react-toastify";
+import { HealthService } from "../../service/health.service";
 type Props = {
   backgroundImageUrl?: string;
 };
+
+type CSSVariables = CSSProperties & Record<`--${string}`, string>;
 
 export default function Login({
   backgroundImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQx5T1LvEjeIQBt-UxZLODbdXIF-tr7NXUvdQ&s",
@@ -45,23 +49,10 @@ export default function Login({
     return () => window.clearInterval(timer);
   }, [resendCooldown]);
 
-  useEffect(() => {
-    if (step === "verify") {
-      setTimeout(() => {
-        codeRefs.current[0]?.focus();
-      }, 0);
-    }
-  }, [step]);
-  useEffect(() => {
-    if (step === "verify" && code.every((digit) => digit !== "") && !loading) {
-      handleSubmit(new Event("submit") as any);
-    }
-  }, [code, step]);
-
-  function showErrorToast() {
+  const showErrorToast = useCallback(() => {
     toast.error(
       <span>
-        {requestFailureMessage} {" "}
+        {requestFailureMessage}{" "}
         <a
           className={styles.toastLink}
           href={supportUrl}
@@ -72,46 +63,67 @@ export default function Login({
         </a>
       </span>,
     );
-  }
+  }, [requestFailureMessage, supportUrl]);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const handleSubmit = useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
 
-    if (step === "login") {
+      if (step === "login") {
+        try {
+          setLoading(true);
+          await UserService.verifyEmail({ email, password });
+          setStep("verify");
+        } catch {
+          showErrorToast();
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
       try {
         setLoading(true);
-        await UserService.verifyEmail({ email, password });
-        setStep("verify");
-      } catch (error) {
+
+        const verify = await UserService.verificationToken({
+          email,
+          code: code.join(""),
+        });
+
+        localStorage.setItem("token", verify.token);
+        contextLogin(verify.token);
+
+        navigate("/dashboard");
+      } catch {
+        setCode(["", "", "", "", "", ""]);
+        codeRefs.current[0]?.focus();
         showErrorToast();
       } finally {
         setLoading(false);
       }
-      return;
+    },
+    [code, contextLogin, email, navigate, password, showErrorToast, step],
+  );
+
+  useEffect(() => {
+    if (step === "verify") {
+      setTimeout(() => {
+        codeRefs.current[0]?.focus();
+      }, 0);
     }
-
-    try {
-      setLoading(true);
-
-      const verify = await UserService.verificationToken({
-        email,
-        code: code.join(""),
-      });
-
-      localStorage.setItem("token", verify.token);
-      contextLogin(verify.token);
-
-      navigate("/dashboard");
-    } catch {
-      setCode(["", "", "", "", "", ""]);
-      codeRefs.current[0]?.focus();
-      showErrorToast();
-    } finally {
-      setLoading(false);
+  }, [step]);
+  useEffect(() => {
+    if (step === "verify" && code.every((digit) => digit !== "") && !loading) {
+      const submitEvent = { preventDefault: () => {} } as FormEvent;
+      handleSubmit(submitEvent);
     }
-  }
+  }, [code, step, loading, handleSubmit]);
 
-  async function handleResendCode() {
+  useEffect(() => {
+    HealthService.health();
+  }, []);
+
+  const handleResendCode = useCallback(async () => {
     if (loading || resendCooldown > 0) {
       return;
     }
@@ -121,12 +133,12 @@ export default function Login({
       setResendCooldown(60);
       setCode(["", "", "", "", "", ""]);
       codeRefs.current[0]?.focus();
-    } catch (error) {
+    } catch {
       showErrorToast();
     } finally {
       setLoading(false);
     }
-  }
+  }, [email, loading, password, resendCooldown, showErrorToast]);
 
   function handleCodeChange(index: number, value: string) {
     const nextValue = value.replace(/\D/g, "").slice(-1);
@@ -147,28 +159,24 @@ export default function Login({
     }
   }
 
+  const colorVars: CSSVariables = {
+    "--bgPrimary": Colors.Background.primary,
+    "--bgSecondary": Colors.Background.secondary,
+    "--bgSidebar": Colors.Background.sidebar ?? "#1E1B18",
+    "--surface": Colors.Background.surface ?? "#FFFFFF",
+    "--surfaceMuted": Colors.Background.surfaceMuted ?? "#F0F1F5",
+    "--highlight": Colors.Highlight.primary,
+    "--textPrimary": Colors.Texts.primary,
+    "--textSecondary": Colors.Texts.secondary,
+    "--textMuted": Colors.Texts.muted ?? "#9CA3AF",
+    "--textOnDark": Colors.Texts.onDark ?? "#FFFFFF",
+    "--border": Colors.Border?.default ?? "#E5E7EB",
+    "--borderLight": Colors.Border?.light ?? "#F1F1F1",
+    "--heroImage": `url(${backgroundImageUrl})`,
+  };
+
   return (
-    <div
-      className={styles.page}
-      style={
-        {
-          ["--bgPrimary" as any]: Colors.Background.primary,
-          ["--bgSecondary" as any]: Colors.Background.secondary,
-          ["--bgSidebar" as any]: Colors.Background.sidebar ?? "#1E1B18",
-          ["--surface" as any]: Colors.Background.surface ?? "#FFFFFF",
-          ["--surfaceMuted" as any]:
-            Colors.Background.surfaceMuted ?? "#F0F1F5",
-          ["--highlight" as any]: Colors.Highlight.primary,
-          ["--textPrimary" as any]: Colors.Texts.primary,
-          ["--textSecondary" as any]: Colors.Texts.secondary,
-          ["--textMuted" as any]: Colors.Texts.muted ?? "#9CA3AF",
-          ["--textOnDark" as any]: Colors.Texts.onDark ?? "#FFFFFF",
-          ["--border" as any]: Colors.Border?.default ?? "#E5E7EB",
-          ["--borderLight" as any]: Colors.Border?.light ?? "#F1F1F1",
-          ["--heroImage" as any]: `url(${backgroundImageUrl})`,
-        } as React.CSSProperties
-      }
-    >
+    <div className={styles.page} style={colorVars}>
       <div className={styles.left}>
         <div className={styles.leftBg} />
         <div className={styles.leftGlow} />

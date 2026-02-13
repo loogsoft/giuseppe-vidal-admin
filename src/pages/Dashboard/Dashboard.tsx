@@ -9,6 +9,7 @@ import {
   YAxis,
   Tooltip,
   CartesianGrid,
+  type TooltipProps,
 } from "recharts";
 import { FiCalendar, FiEye } from "react-icons/fi";
 import Colors from "../../themes/Colors";
@@ -80,7 +81,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         time: "19:42",
         client: { initials: "RM" },
         clientName: "Ricardo Mendes",
-        products: "1x Bacon Deluxe, 1x Batata M",
+        products: "1x Camisa Polo, 1x Cinto Couro",
         total: "R$ 54,90",
         status: "CONCLUIDO",
       },
@@ -90,7 +91,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         time: "19:30",
         client: { initials: "AS" },
         clientName: "Amanda Silva",
-        products: "2x Cheese Burger, 2x Coca-Cola",
+        products: "2x Camiseta Basica, 1x Calca Jeans",
         total: "R$ 82,00",
         status: "CONCLUIDO",
       },
@@ -100,7 +101,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         time: "19:25",
         client: { initials: "JO" },
         clientName: "João Oliveira",
-        products: "1x Smash Onion, 1x Suco Natural",
+        products: "1x Jaqueta Corta Vento, 1x Mochila",
         total: "R$ 42,50",
         status: "CANCELADO",
       },
@@ -110,7 +111,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         time: "19:10",
         client: { initials: "CP" },
         clientName: "Carla P.",
-        products: "3x Combo Kids",
+        products: "3x Camiseta Infantil",
         total: "R$ 115,00",
         status: "CONCLUIDO",
       },
@@ -150,7 +151,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         time: "19:42",
         client: { initials: "RM" },
         clientName: "Ricardo Mendes",
-        products: "1x Bacon Deluxe, 1x Batata M",
+        products: "1x Camisa Polo, 1x Cinto Couro",
         total: "R$ 54,90",
         status: "CONCLUIDO",
       },
@@ -160,7 +161,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         time: "19:30",
         client: { initials: "AS" },
         clientName: "Amanda Silva",
-        products: "2x Cheese Burger, 2x Coca-Cola",
+        products: "2x Camiseta Basica, 1x Calca Jeans",
         total: "R$ 82,00",
         status: "CONCLUIDO",
       },
@@ -170,7 +171,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         time: "19:25",
         client: { initials: "JO" },
         clientName: "Joao Oliveira",
-        products: "1x Smash Onion, 1x Suco Natural",
+        products: "1x Jaqueta Corta Vento, 1x Mochila",
         total: "R$ 42,50",
         status: "CANCELADO",
       },
@@ -180,7 +181,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         time: "19:10",
         client: { initials: "CP" },
         clientName: "Carla P.",
-        products: "3x Combo Kids",
+        products: "3x Camiseta Infantil",
         total: "R$ 115,00",
         status: "CONCLUIDO",
       },
@@ -216,7 +217,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         time: "12:16",
         client: { initials: "FP" },
         clientName: "Felipe Pereira",
-        products: "2x Smash Onion, 1x Suco Natural",
+        products: "2x Moletom, 1x Bone",
         total: "R$ 96,40",
         status: "CONCLUIDO",
       },
@@ -226,7 +227,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         time: "18:03",
         client: { initials: "LL" },
         clientName: "Larissa Lima",
-        products: "1x Combo Kids, 1x Refri 2L",
+        products: "1x Vestido Midi, 1x Bolsa",
         total: "R$ 84,90",
         status: "CONCLUIDO",
       },
@@ -236,7 +237,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         time: "20:10",
         client: { initials: "CB" },
         clientName: "Carlos Braga",
-        products: "2x Cheese Burger",
+        products: "2x Camisa Social",
         total: "R$ 74,00",
         status: "CANCELADO",
       },
@@ -246,7 +247,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         time: "19:22",
         client: { initials: "DM" },
         clientName: "Diana M.",
-        products: "1x Bacon Deluxe, 1x Batata G",
+        products: "1x Jaqueta Jeans, 1x Shorts",
         total: "R$ 68,00",
         status: "CONCLUIDO",
       },
@@ -261,12 +262,13 @@ function MetricIcon({ kind }: { kind: MetricCard["icon"] }) {
   return <span className={styles.metricIcon}>🏆</span>;
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label }: TooltipProps<number, string>) {
   if (!active || !payload?.length) return null;
+  const value = Number(payload[0]?.value ?? 0);
   return (
     <div className={styles.tooltip}>
       <div className={styles.tooltipTitle}>{label}</div>
-      <div className={styles.tooltipValue}>R$ {Number(payload[0].value * 13).toFixed(2)}</div>
+      <div className={styles.tooltipValue}>R$ {(value * 13).toFixed(2)}</div>
     </div>
   );
 }

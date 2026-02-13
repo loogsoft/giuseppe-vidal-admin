@@ -4,7 +4,7 @@ const Colors = {
     secondary: "#FFFFFF",
     sidebar: "#1E1B18",
     surface: "#FFFFFF",
-    surfaceMuted: "#F0F1F5",
+    surfaceMuted: "#eff2f5",
   },
 
   Highlight: {

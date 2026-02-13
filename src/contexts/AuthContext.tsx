@@ -1,14 +1,6 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../service/api";
-
-type AuthContextType = {
-  isAuthenticated: boolean;
-  login: (token: string) => void;
-  logout: () => void;
-  loading: boolean;
-};
-
-const AuthContext = createContext({} as AuthContextType);
+import { AuthContext } from "./auth-context";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -55,8 +47,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  return useContext(AuthContext);
 }

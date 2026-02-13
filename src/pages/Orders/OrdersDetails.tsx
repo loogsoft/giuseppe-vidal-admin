@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import React, { useMemo } from "react";
 import styles from "./OrderDetails.module.css";
 import Colors from "../../themes/Colors";
@@ -41,6 +42,8 @@ type Order = {
   discount: number;
 };
 
+type CSSVariables = CSSProperties & Record<`--${string}`, string>;
+
 function formatBRL(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
@@ -54,18 +57,18 @@ export default function OrderDetails() {
       items: [
         {
           id: "1",
-          title: "Double Bacon Burger",
-          description: "Carne 180g, Bacon, Cheddar, Pão Australiano",
+          title: "Camisa Polo Premium",
+          description: "Tamanho M, algodao piquet, azul marinho",
           price: 38.9,
-          iconText: "🍔",
-          observations: "Sem cebola e bacon bem crocante, por favor.",
+          iconText: "👕",
+          observations: "Separar no estoque e conferir etiqueta.",
         },
         {
           id: "2",
-          title: "Batata Frita G",
-          description: "Acompanha maionese da casa",
+          title: "Calca Jeans Slim",
+          description: "Tamanho 42, lavagem escura",
           price: 15.0,
-          iconText: "🍟",
+          iconText: "👖",
         },
       ],
       customer: {
@@ -89,12 +92,12 @@ export default function OrderDetails() {
           status: "done",
         },
         {
-          label: "ACEITO NA COZINHA",
+          label: "SEPARACAO NO ESTOQUE",
           timeLabel: "Hoje às 19:26",
           status: "current",
         },
         {
-          label: "SAIU PARA ENTREGA",
+          label: "EMBALAGEM FINALIZADA",
           timeLabel: "Aguardando...",
           status: "pending",
         },
@@ -112,18 +115,17 @@ export default function OrderDetails() {
     [order.subtotal, order.deliveryFee, order.discount],
   );
   const navigate = useNavigate();
+  const colorVars: CSSVariables = {
+    "--bgPrimary": Colors.Background.primary,
+    "--bgSecondary": Colors.Background.secondary,
+    "--textPrimary": Colors.Texts.primary,
+    "--textSecondary": Colors.Texts.secondary,
+    "--highlight": Colors.Highlight.primary,
+  };
   return (
     <div
       className={styles.page}
-      style={
-        {
-          ["--bgPrimary" as any]: Colors.Background.primary,
-          ["--bgSecondary" as any]: Colors.Background.secondary,
-          ["--textPrimary" as any]: Colors.Texts.primary,
-          ["--textSecondary" as any]: Colors.Texts.secondary,
-          ["--highlight" as any]: Colors.Highlight.primary,
-        } as React.CSSProperties
-      }
+      style={colorVars}
     >
       <header className={styles.topbar}>
         <div className={styles.topbarLeft}>

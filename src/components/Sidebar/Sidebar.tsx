@@ -17,7 +17,7 @@ import {
   PackageX,
 } from "lucide-react";
 import { IoExitOutline } from "react-icons/io5";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../contexts/useAuth";
 import logo from "../../assets/logo.png";
 
 export function Sidebar() {
@@ -102,7 +102,7 @@ export function Sidebar() {
           </NavLink>
 
           <NavLink
-            to="/clientes"
+            to="/suppliers"
             className={({ isActive }) =>
               isActive ? styles.active : styles.link
             }
