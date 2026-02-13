@@ -155,7 +155,7 @@ export function SupplierDetails() {
 						disabled={saving}
 					>
 						<Save size={16} />
-						{saving ? loadingLabel : "Salvar Alterações"}
+						{saving ? loadingLabel : actionLabel}
 					</button>
 				</div>
 			</div>

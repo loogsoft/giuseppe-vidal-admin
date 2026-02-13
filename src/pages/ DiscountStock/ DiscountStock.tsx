@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import styles from "./ DiscountStock.module.css";
 import { FiChevronDown, FiClock, FiSearch, FiTag, FiTrendingDown } from "react-icons/fi";
 import StatCard from "../../components/StatCard/StatCard";
-import { Plus } from "lucide-react";
 type StockItem = {
   id: string;
   name: string;

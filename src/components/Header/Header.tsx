@@ -1,5 +1,5 @@
 import styles from "./Header.module.css";
-import { FiSearch, FiBell, FiMoon, FiSun} from "react-icons/fi";
+import { FiBell, FiMoon, FiSun } from "react-icons/fi";
 import { useTheme } from "../../contexts/useTheme";
 import { useAuth } from "../../contexts/useAuth";
 import { useNavigate } from "react-router-dom";

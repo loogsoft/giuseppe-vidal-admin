@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { useParams } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import styles from "./Profille.module.css";
 
 export function Profille() {
   const { user } = useAuth();
-  const { id } = useParams();
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   FiChevronLeft,
   FiChevronRight,
-  FiFilter,
   FiGrid,
   FiPackage,
   FiPlus,
@@ -91,7 +90,7 @@ const mapSupplierCard = (
 };
 
 export function Supplier() {
-  const [activeCat, setActiveCat] = useState("all");
+  const [activeCat] = useState("all");
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
@@ -99,11 +98,6 @@ export function Supplier() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const categories = useMemo(() => {
-    const unique = Array.from(new Set(suppliers.map((s) => s.category)));
-    return ["all", ...unique];
-  }, [suppliers]);
-
   const filtered = useMemo(() => {
     let current = suppliers;
     if (activeCat !== "all") {

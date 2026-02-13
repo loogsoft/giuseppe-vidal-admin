@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import api from "../service/api";
 import { UserService } from "../service/User.service";
 import { AuthContext } from "./auth-context";
 
