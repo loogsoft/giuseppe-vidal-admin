@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -10,7 +9,6 @@ import {
 } from "react-icons/fi";
 import { CgFileAdd } from "react-icons/cg";
 import ProductCard from "../../components/ProductCard";
-import Colors from "../../themes/Colors";
 import styles from "./Supplier.module.css";
 import { SupplierService } from "../../service/Supplier.service";
 import type { SupplierResponseDto } from "../../dtos/response/supplier-response.dto";
@@ -167,22 +165,9 @@ export function Supplier() {
   const openOrders = suppliers.reduce((sum, s) => sum + s.openOrders, 0);
   const categoriesTotal = new Set(suppliers.map((s) => s.category)).size;
 
-  const colorVars = {
-    "--bg-primary": Colors.Background.primary,
-    "--surface": Colors.Background.surface,
-    "--surface-muted": Colors.Background.surfaceMuted,
-    "--text-primary": Colors.Texts.primary,
-    "--text-secondary": Colors.Texts.secondary,
-    "--text-muted": Colors.Texts.muted,
-    "--border-default": Colors.Border.default,
-    "--highlight-primary": Colors.Highlight.primary,
-    "--highlight-secondary": Colors.Highlight.secondary,
-    "--status-warning": Colors.Status.warning,
-    "--status-warning-bg": Colors.Status.warningBg,
-  } as CSSProperties;
 
   return (
-    <div className={styles.page} style={colorVars}>
+    <div className={styles.page}>
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>Gestao de Fornecedores</h1>

@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
 import styles from "./Dashboard.module.css";
 import {
@@ -11,7 +10,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { FiCalendar, FiEye } from "react-icons/fi";
-import Colors from "../../themes/Colors";
+import { useTheme } from "../../contexts/useTheme";
 
 type MetricCard = {
   label: string;
@@ -280,26 +279,31 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 
 export function Dashboard() {
   const [period, setPeriod] = useState<Period>("week");
+  const { theme } = useTheme();
 
   const periodData = useMemo(() => DASHBOARD_MOCK[period], [period]);
-  const colorVars = {
-    "--bg-primary": Colors.Background.primary,
-    "--surface": Colors.Background.surface,
-    "--surface-muted": Colors.Background.surfaceMuted,
-    "--text-primary": Colors.Texts.primary,
-    "--text-secondary": Colors.Texts.secondary,
-    "--text-muted": Colors.Texts.muted,
-    "--border-default": Colors.Border.default,
-    "--highlight-primary": Colors.Highlight.primary,
-    "--highlight-secondary": Colors.Highlight.secondary,
-    "--status-success": Colors.Status.success,
-    "--status-success-bg": Colors.Status.successBg,
-    "--status-warning": Colors.Status.warning,
-    "--status-warning-bg": Colors.Status.warningBg,
-  } as CSSProperties;
+  const chartColors = useMemo(() => {
+    if (typeof window === "undefined") {
+      return {
+        primary: "#f6c40f",
+        secondary: "#ffe29a",
+        muted: "#9aa0a6",
+        grid: "rgba(0, 0, 0, 0.06)",
+      };
+    }
+    const stylesVars = getComputedStyle(document.documentElement);
+    const readVar = (name: string, fallback: string) =>
+      stylesVars.getPropertyValue(name).trim() || fallback;
+    return {
+      primary: readVar("--highlight-primary", "#f6c40f"),
+      secondary: readVar("--highlight-secondary", "#ffe29a"),
+      muted: readVar("--text-muted", "#9aa0a6"),
+      grid: readVar("--border-default", "rgba(0, 0, 0, 0.06)"),
+    };
+  }, [theme]);
 
   return (
-    <div className={styles.page} style={colorVars}>
+    <div className={styles.page}>
       <div className={styles.top}>
         <div>
           <h1 className={styles.title}>Dashboard Executivo</h1>
@@ -386,17 +390,20 @@ export function Dashboard() {
 
         <div className={styles.chartWrap}>
           <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={periodData.chart} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+            <BarChart
+              data={periodData.chart}
+              margin={{ top: 8, right: 12, left: 0, bottom: 0 }}
+            >
               <defs>
                 <linearGradient id="barFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={Colors.Highlight.primary} stopOpacity={0.9} />
-                  <stop offset="100%" stopColor={Colors.Highlight.secondary} stopOpacity={0.9} />
+                  <stop offset="0%" stopColor={chartColors.primary} stopOpacity={0.9} />
+                  <stop offset="100%" stopColor={chartColors.secondary} stopOpacity={0.9} />
                 </linearGradient>
               </defs>
-              <CartesianGrid stroke="rgba(0,0,0,0.06)" vertical={false} />
+              <CartesianGrid stroke={chartColors.grid} vertical={false} />
               <XAxis
                 dataKey="name"
-                tick={{ fill: Colors.Texts.muted, fontSize: 11 }}
+                tick={{ fill: chartColors.muted, fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
               />

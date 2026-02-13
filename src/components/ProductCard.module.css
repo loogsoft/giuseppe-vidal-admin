@@ -1,14 +1,14 @@
 .card {
   border-radius: 25px;
   overflow: hidden;
-  background:#fff ;
-  box-shadow: 10px 12px 24px rgba(17, 24, 39, 0.08);
+  background: var(--surface);
+  box-shadow: var(--shadow-1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 12px 16px 28px rgba(17, 24, 39, 0.12);
+  box-shadow: var(--shadow-2);
 }
 
 .media {

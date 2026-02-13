@@ -1,7 +1,6 @@
-import type { CSSProperties, FormEvent } from "react";
+import type { FormEvent, CSSProperties } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Login.module.css";
-import Colors from "../../themes/Colors";
 import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
@@ -13,8 +12,6 @@ import { HealthService } from "../../service/health.service";
 type Props = {
   backgroundImageUrl?: string;
 };
-
-type CSSVariables = CSSProperties & Record<`--${string}`, string>;
 
 export default function Login({
   backgroundImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQx5T1LvEjeIQBt-UxZLODbdXIF-tr7NXUvdQ&s",
@@ -159,24 +156,8 @@ export default function Login({
     }
   }
 
-  const colorVars: CSSVariables = {
-    "--bgPrimary": Colors.Background.primary,
-    "--bgSecondary": Colors.Background.secondary,
-    "--bgSidebar": Colors.Background.sidebar ?? "#1E1B18",
-    "--surface": Colors.Background.surface ?? "#FFFFFF",
-    "--surfaceMuted": Colors.Background.surfaceMuted ?? "#F0F1F5",
-    "--highlight": Colors.Highlight.primary,
-    "--textPrimary": Colors.Texts.primary,
-    "--textSecondary": Colors.Texts.secondary,
-    "--textMuted": Colors.Texts.muted ?? "#9CA3AF",
-    "--textOnDark": Colors.Texts.onDark ?? "#FFFFFF",
-    "--border": Colors.Border?.default ?? "#E5E7EB",
-    "--borderLight": Colors.Border?.light ?? "#F1F1F1",
-    "--heroImage": `url(${backgroundImageUrl})`,
-  };
-
   return (
-    <div className={styles.page} style={colorVars}>
+    <div className={styles.page} style={{ "--heroImage": `url(${backgroundImageUrl})` } as CSSProperties}>
       <div className={styles.left}>
         <div className={styles.leftBg} />
         <div className={styles.leftGlow} />

@@ -1,10 +1,10 @@
 const Colors = {
   Background: {
-    primary: "#F5F6FA",
+    primary: "#FFFFFF",
     secondary: "#FFFFFF",
     sidebar: "#1E1B18",
     surface: "#FFFFFF",
-    surfaceMuted: "#eff2f5",
+    surfaceMuted: "#F7F7F7",
   },
 
   Highlight: {

@@ -6,12 +6,15 @@
 
 .main {
   flex: 1;  
-  width: calc(100% - 300px);
+  width: calc(100% - 30px);
+  height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .content {
   flex: 1;
   color: var(--text-primary);
+  overflow-y: auto;
 }

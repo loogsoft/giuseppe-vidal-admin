@@ -1,13 +1,14 @@
 .sidebar {
-  width: 280px;
+  width: 250px;
   height: 100vh;
-  background: linear-gradient(180deg, #241a16 0%, #1c1411 100%);
-  color: #ffffff;
+  background: var(--surface);
+  color: var(--text-primary);
+  elevation: 10;
   padding: 26px 18px 22px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.05);
+  box-shadow: inset -1px 0 0 var(--border-default);
   overflow-y: auto;
   scrollbar-width: none;
 }
@@ -25,28 +26,28 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--surface-muted);
 }
 
 .brandIconInner {
   width: 18px;
   height: 18px;
   border-radius: 4px;
-  background: #f7f2ee;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25);
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--border-default);
 }
 
 .brandTitle {
   font-size: 16px;
   letter-spacing: 0.8px;
   font-weight: 500;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .brandSubtitle {
   display: block;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.42);
+  color: var(--text-secondary);
 }
 
 .menu {
@@ -58,7 +59,7 @@
 .submenuToggle {
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -70,8 +71,9 @@
 }
 
 .submenuToggle:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #f2b632;
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-1);
 }
 
 .submenuTitle {
@@ -112,15 +114,16 @@
   align-items: center;
   gap: 10px;
   padding: 8px 0px;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-secondary);
   text-decoration: none;
   border-radius: 10px;
   font-size: 13px;
 }
 
 .subLink:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #f2b632;
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-1);
 }
 
 .subLinkActive {
@@ -128,7 +131,7 @@
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--active-bg);
   color: #f2b632;
   text-decoration: none;
   border-radius: 10px;
@@ -152,7 +155,7 @@
   font-weight: 600;
   letter-spacing: 1.4px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--text-muted);
 }
 
 .link {
@@ -160,7 +163,7 @@
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   text-decoration: none;
   border-radius: 12px;
   font-size: 14px;
@@ -168,8 +171,9 @@
 }
 
 .link:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #f2b632;
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-1);
 }
 
 .active {
@@ -177,7 +181,7 @@
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--active-bg);
   color: #f2b632;
   border-radius: 12px;
   font-weight: 500;
@@ -206,7 +210,7 @@
   align-items: center;
   gap: 12px;
   padding: 11px 14px;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--text-secondary);
   text-decoration: none;
   border-radius: 14px;
   font-size: 14px;
@@ -214,8 +218,9 @@
 }
 
 .linkButton:hover {
-  background: rgba(255, 77, 77, 0.08);
-  color: #ff4d4d;
+  background: var(--hover-bg);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-1);
 }
 
 .icon {
@@ -244,7 +249,7 @@
   align-items: center;
   gap: 10px;
   padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--border-default);
 }
 
 .avatar {
@@ -255,11 +260,11 @@
 
 .user strong {
   font-size: 13px;
-  color: #ffffff;
+  color: var(--text-primary);
 }
 
 .user span {
   display: block;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-secondary);
 }

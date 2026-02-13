@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "./Orders.module.css";
 import { FiChevronDown, FiSearch } from "react-icons/fi";
 type StockItem = {
@@ -129,6 +129,8 @@ export function Orders() {
   const [category, setCategory] = useState("all");
   const [sortBy, setSortBy] = useState("alpha");
   const [view, setView] = useState<"stock" | "history">("stock");
+  const [page, setPage] = useState(1);
+  const pageSize = 6;
   const totalItems = STOCK_ITEMS.length;
   const totalOut = 142;
 
@@ -175,6 +177,25 @@ export function Orders() {
       return haystack.includes(term);
     });
   }, [search]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [view, search, category, sortBy]);
+
+  const totalResults = view === "stock" ? filteredItems.length : filteredHistory.length;
+  const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pagedStockItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredItems.slice(start, start + pageSize);
+  }, [filteredItems, currentPage]);
+
+  const pagedHistoryItems = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredHistory.slice(start, start + pageSize);
+  }, [filteredHistory, currentPage]);
+
+  const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
 
   return (
     <div className={styles.page}>
@@ -295,89 +316,175 @@ export function Orders() {
       </section>
 
       {view === "stock" ? (
-        <section className={styles.table}>
-          <div className={styles.tableHeader}>
-            <span>Produto</span>
-            <span>Categoria</span>
-            <span>Estoque atual</span>
-            <span>Acao</span>
+        <section className={styles.tablePanel}>
+          <div className={styles.table}>
+            <div className={styles.tableHeader}>
+              <span>Produto</span>
+              <span>Categoria</span>
+              <span>Estoque atual</span>
+              <span>Acao</span>
+            </div>
+            <div className={styles.tableBody}>
+              {pagedStockItems.map((item) => (
+                <div className={styles.row} key={item.id}>
+                  <div className={styles.productCol}>
+                    <div className={styles.productName}>{item.name}</div>
+                    <div className={styles.productSku}>SKU: {item.sku}</div>
+                  </div>
+                  <div className={styles.categoryCol}>{item.category}</div>
+                  <div className={styles.stockCol}>
+                    <span
+                      className={`${styles.stockPill} ${
+                        item.level === "critical"
+                          ? styles.stockCritical
+                          : item.level === "low"
+                            ? styles.stockLow
+                            : styles.stockOk
+                      }`}
+                    >
+                      {item.stock} {item.unit}
+                    </span>
+                  </div>
+                  <div className={styles.actionCol}>
+                    <button className={styles.actionBtn} type="button">
+                      Dar baixa
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className={styles.tableBody}>
-            {filteredItems.map((item) => (
-              <div className={styles.row} key={item.id}>
-                <div className={styles.productCol}>
-                  <div className={styles.productName}>{item.name}</div>
-                  <div className={styles.productSku}>SKU: {item.sku}</div>
-                </div>
-                <div className={styles.categoryCol}>{item.category}</div>
-                <div className={styles.stockCol}>
-                  <span
-                    className={`${styles.stockPill} ${
-                      item.level === "critical"
-                        ? styles.stockCritical
-                        : item.level === "low"
-                          ? styles.stockLow
-                          : styles.stockOk
-                    }`}
-                  >
-                    {item.stock} {item.unit}
-                  </span>
-                </div>
-                <div className={styles.actionCol}>
-                  <button className={styles.actionBtn} type="button">
-                    Dar baixa
-                  </button>
-                </div>
-              </div>
-            ))}
+          <div className={styles.tableFooter}>
+            <div className={styles.tableSummary}>
+              Mostrando {pagedStockItems.length} de {totalResults} produtos
+            </div>
+            <div className={styles.pagination}>
+              <button
+                className={`${styles.pageBtn} ${
+                  currentPage === 1 ? styles.pageBtnDisabled : ""
+                }`}
+                type="button"
+                onClick={() => setPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                aria-label="Pagina anterior"
+              >
+                ‹
+              </button>
+              {pages.map((p) => (
+                <button
+                  key={p}
+                  className={`${styles.pageBtn} ${
+                    p === currentPage ? styles.pageBtnActive : ""
+                  }`}
+                  type="button"
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                className={`${styles.pageBtn} ${
+                  currentPage === totalPages ? styles.pageBtnDisabled : ""
+                }`}
+                type="button"
+                onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                aria-label="Proxima pagina"
+              >
+                ›
+              </button>
+            </div>
           </div>
         </section>
       ) : (
-        <section className={styles.table}>
-          <div className={`${styles.tableHeader} ${styles.tableHeaderHistory}`}>
-            <span>Data/Hora</span>
-            <span>Produto</span>
-            <span>Qtd. retirada</span>
-            <span>Motivo</span>
-            <span>Responsavel</span>
-            <span>Acao</span>
+        <section className={styles.tablePanel}>
+          <div className={styles.table}>
+            <div className={`${styles.tableHeader} ${styles.tableHeaderHistory}`}>
+              <span>Data/Hora</span>
+              <span>Produto</span>
+              <span>Qtd. retirada</span>
+              <span>Motivo</span>
+              <span>Responsavel</span>
+              <span>Acao</span>
+            </div>
+            <div className={styles.tableBody}>
+              {pagedHistoryItems.map((item) => (
+                <div
+                  className={`${styles.row} ${styles.rowHistory}`}
+                  key={item.id}
+                >
+                  <div className={styles.dateCol}>
+                    <div>{item.date}</div>
+                    <div className={styles.muted}>{item.time}</div>
+                  </div>
+                  <div className={styles.productCol}>
+                    <div className={styles.productName}>{item.product}</div>
+                    <div className={styles.productSku}>SKU: {item.id}</div>
+                  </div>
+                  <div className={styles.qtyCol}>{item.quantity} un</div>
+                  <div className={styles.reasonCol}>
+                    <span
+                      className={`${styles.reasonPill} ${
+                        item.reason === "Venda"
+                          ? styles.reasonSale
+                          : item.reason === "Avaria"
+                            ? styles.reasonDamage
+                            : styles.reasonInternal
+                      }`}
+                    >
+                      {item.reason}
+                    </span>
+                  </div>
+                  <div className={styles.ownerCol}>{item.owner}</div>
+                  <div className={styles.actionCol}>
+                    <button className={styles.actionOutlineBtn} type="button">
+                      Ver detalhes
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className={styles.tableBody}>
-            {filteredHistory.map((item) => (
-              <div
-                className={`${styles.row} ${styles.rowHistory}`}
-                key={item.id}
+          <div className={styles.tableFooter}>
+            <div className={styles.tableSummary}>
+              Mostrando {pagedHistoryItems.length} de {totalResults} baixas
+            </div>
+            <div className={styles.pagination}>
+              <button
+                className={`${styles.pageBtn} ${
+                  currentPage === 1 ? styles.pageBtnDisabled : ""
+                }`}
+                type="button"
+                onClick={() => setPage(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                aria-label="Pagina anterior"
               >
-                <div className={styles.dateCol}>
-                  <div>{item.date}</div>
-                  <div className={styles.muted}>{item.time}</div>
-                </div>
-                <div className={styles.productCol}>
-                  <div className={styles.productName}>{item.product}</div>
-                  <div className={styles.productSku}>SKU: {item.id}</div>
-                </div>
-                <div className={styles.qtyCol}>{item.quantity} un</div>
-                <div className={styles.reasonCol}>
-                  <span
-                    className={`${styles.reasonPill} ${
-                      item.reason === "Venda"
-                        ? styles.reasonSale
-                        : item.reason === "Avaria"
-                          ? styles.reasonDamage
-                          : styles.reasonInternal
-                    }`}
-                  >
-                    {item.reason}
-                  </span>
-                </div>
-                <div className={styles.ownerCol}>{item.owner}</div>
-                <div className={styles.actionCol}>
-                  <button className={styles.actionOutlineBtn} type="button">
-                    Ver detalhes
-                  </button>
-                </div>
-              </div>
-            ))}
+                ‹
+              </button>
+              {pages.map((p) => (
+                <button
+                  key={p}
+                  className={`${styles.pageBtn} ${
+                    p === currentPage ? styles.pageBtnActive : ""
+                  }`}
+                  type="button"
+                  onClick={() => setPage(p)}
+                >
+                  {p}
+                </button>
+              ))}
+              <button
+                className={`${styles.pageBtn} ${
+                  currentPage === totalPages ? styles.pageBtnDisabled : ""
+                }`}
+                type="button"
+                onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
+                disabled={currentPage === totalPages}
+                aria-label="Proxima pagina"
+              >
+                ›
+              </button>
+            </div>
           </div>
         </section>
       )}

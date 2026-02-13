@@ -1,12 +1,12 @@
 .card {
   width: 100%;
   max-width: 100%;
-  background: hsl(0, 0%, 17%);
+  background: var(--surface);
   border-radius: 18px;
   padding: 14px;
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.32);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
+  box-shadow: var(--shadow-2);
 }
 
 .header {
@@ -28,13 +28,13 @@
   margin-top: 4px;
   font-size: 14px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.92);
+  color: var(--text-primary);
 }
 
 .timePill {
-  background: rgba(0, 0, 0, 0.32);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.55);
+  background: var(--surface-muted);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
   padding: 6px 10px;
   border-radius: 999px;
   font-weight: 800;
@@ -63,20 +63,20 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(185, 195, 205, 0.7);
+  background: var(--text-muted);
   display: inline-block;
   flex: 0 0 auto;
 }
 
 .itemText {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 600;
 }
 
 .divider {
   height: 1px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--border-default);
   margin: 12px 0 10px 0;
 }
 
@@ -91,7 +91,7 @@
   font-size: 18px;
   font-weight: 600;
   letter-spacing: 0.2px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
 }
 
 

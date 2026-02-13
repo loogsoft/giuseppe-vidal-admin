@@ -1,4 +1,3 @@
-import type { CSSProperties } from "react";
 import styles from "./Product.module.css";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -13,7 +12,6 @@ import { ProductService } from "../../service/Product.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import { useNavigate } from "react-router-dom";
-import Colors from "../../themes/Colors";
 
 export function Products() {
   const [activeCat, setActiveCat] = useState<CategoryKey>("all");
@@ -130,19 +128,6 @@ export function Products() {
     return new Set(products.map((p) => p.category)).size;
   }, [products]);
 
-  const colorVars = {
-    "--bg-primary": Colors.Background.primary,
-    "--surface": Colors.Background.surface,
-    "--surface-muted": Colors.Background.surfaceMuted,
-    "--text-primary": Colors.Texts.primary,
-    "--text-secondary": Colors.Texts.secondary,
-    "--text-muted": Colors.Texts.muted,
-    "--border-default": Colors.Border.default,
-    "--highlight-primary": Colors.Highlight.primary,
-    "--highlight-secondary": Colors.Highlight.secondary,
-    "--status-warning": Colors.Status.warning,
-    "--status-warning-bg": Colors.Status.warningBg,
-  } as CSSProperties;
 
   // const getPrimaryImageUrl = (images: ImageResponse[]) => {
   //   const primary = (images || []).find((img: any) => img?.isPrimary);
@@ -186,7 +171,7 @@ export function Products() {
   };
 
   return (
-    <div className={styles.page} style={colorVars}>
+    <div className={styles.page}>
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>Gestao de Produtos</h1>

@@ -1,7 +1,5 @@
-import type { CSSProperties } from "react";
 import { useMemo } from "react";
 import styles from "./OrderDetails.module.css";
-import Colors from "../../themes/Colors";
 import { useNavigate } from "react-router-dom";
 
 type OrderItem = {
@@ -42,7 +40,6 @@ type Order = {
   discount: number;
 };
 
-type CSSVariables = CSSProperties & Record<`--${string}`, string>;
 
 function formatBRL(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -115,18 +112,8 @@ export default function OrderDetails() {
     [order.subtotal, order.deliveryFee, order.discount],
   );
   const navigate = useNavigate();
-  const colorVars: CSSVariables = {
-    "--bgPrimary": Colors.Background.primary,
-    "--bgSecondary": Colors.Background.secondary,
-    "--textPrimary": Colors.Texts.primary,
-    "--textSecondary": Colors.Texts.secondary,
-    "--highlight": Colors.Highlight.primary,
-  };
   return (
-    <div
-      className={styles.page}
-      style={colorVars}
-    >
+    <div className={styles.page}>
       <header className={styles.topbar}>
         <div className={styles.topbarLeft}>
           <button

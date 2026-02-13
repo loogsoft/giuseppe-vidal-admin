@@ -2,8 +2,8 @@
   width: 100%;
   min-height: 100vh;
   padding: 24px;
-  background: #f6f6f2;
-  color: #1d1f23;
+  background: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 .header {
@@ -18,7 +18,7 @@
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(29, 31, 35, 0.55);
+  color: var(--text-muted);
   font-weight: 700;
 }
 
@@ -36,18 +36,18 @@
 
 .date {
   font-size: 12px;
-  color: rgba(29, 31, 35, 0.55);
+  color: var(--text-secondary);
   font-weight: 700;
   padding: 8px 12px;
-  background: #fff;
+  background: var(--surface);
   border-radius: 999px;
-  border: 1px solid rgba(17, 17, 17, 0.08);
+  border: 1px solid var(--border-default);
 }
 
 .primaryBtn {
   border: none;
-  background: #f6c40f;
-  color: #1c1c1c;
+  background: var(--highlight-primary);
+  color: #1b140e;
   font-weight: 800;
   padding: 10px 16px;
   border-radius: 999px;
@@ -63,12 +63,12 @@
 }
 
 .metricCard {
-  background: linear-gradient(135deg, #fff3d6 0%, #ffffff 70%);
+  background: linear-gradient(135deg, var(--surface-muted) 0%, var(--surface) 70%);
   border-radius: 20px;
   padding: 30px 0px;
   min-height: 72px;
   border: 1px solid var(--border-default);
-  box-shadow: 0 10px 18px rgba(17, 24, 39, 0.06);
+  box-shadow: var(--shadow-1);
   text-align: center;
   display: flex;
   flex-direction: column;
@@ -103,22 +103,24 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  background: #fff;
-  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: var(--surface);
+  border: 1px solid var(--border-default);
   border-radius: 14px;
   padding: 12px 14px;
   margin-bottom: 18px;
+  box-shadow: var(--shadow-1);
 }
 
 .search {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #f1f1ed;
+  background: var(--surface-muted);
   border-radius: 10px;
   padding: 8px 12px;
   flex: 1;
-  color: rgba(29, 31, 35, 0.6);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-default);
 }
 
 .searchInput {
@@ -127,7 +129,7 @@
   outline: none;
   font-size: 13px;
   width: 100%;
-  color: #1d1f23;
+  color: var(--text-primary);
 }
 
 .toolbarActions {
@@ -144,27 +146,27 @@
 
 .select {
   appearance: none;
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  background: #fff;
-  color: #1d1f23;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-default);
   font-weight: 700;
   font-size: 12px;
   padding: 8px 32px 8px 12px;
   border-radius: 10px;
   cursor: pointer;
+  color: var(--text-primary);
 }
 
 .selectIcon {
   position: absolute;
   right: 10px;
   pointer-events: none;
-  color: rgba(29, 31, 35, 0.6);
+  color: var(--text-secondary);
 }
 
 .tabs {
   display: inline-flex;
-  background: #fff;
-  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: var(--surface);
+  border: 1px solid var(--border-default);
   border-radius: 999px;
   padding: 4px;
   gap: 6px;
@@ -178,19 +180,19 @@
   border-radius: 999px;
   font-size: 12px;
   font-weight: 800;
-  color: rgba(29, 31, 35, 0.6);
+  color: var(--text-secondary);
   cursor: pointer;
 }
 
 .tabActive {
-  background: #1d1f23;
-  color: #f6c40f;
+  background: var(--highlight-primary);
+  color: var(--bg-primary);
 }
 
 .ghostBtn {
-  border: 1px solid rgba(17, 17, 17, 0.08);
-  background: #fff;
-  color: #1d1f23;
+  border: 1px solid var(--border-default);
+  background: var(--surface);
+  color: var(--text-primary);
   font-weight: 700;
   font-size: 12px;
   padding: 8px 12px;
@@ -202,24 +204,34 @@
 }
 
 .table {
-  background: #fff;
-  border-radius: 16px;
-  border: 1px solid rgba(17, 17, 17, 0.08);
+  background: var(--surface);
+  border-radius: 14px;
+  border: 1px solid var(--border-default);
   overflow: hidden;
+  box-shadow: var(--shadow-1);
+}
+
+.tablePanel {
+  margin-top: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: var(--shadow-1);
 }
 
 .tableHeader {
   display: grid;
   grid-template-columns: 2fr 1.2fr 160px 140px;
   gap: 10px;
-  padding: 12px 16px;
-  font-size: 11px;
-  font-weight: 800;
-  color: rgba(29, 31, 35, 0.5);
+  padding: 12px 12px;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  background: #fbfbf8;
-  border-bottom: 1px solid rgba(17, 17, 17, 0.08);
+  background: var(--surface-muted);
+  border-bottom: 1px solid var(--border-default);
 }
 
 .tableHeaderHistory {
@@ -229,7 +241,7 @@
 .tableBody {
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 420px);
+  max-height: 300px;
   overflow-y: auto;
 }
 
@@ -237,10 +249,11 @@
   display: grid;
   grid-template-columns: 2fr 1.2fr 160px 140px;
   gap: 10px;
-  padding: 12px 16px;
+  padding: 12px 12px;
+  min-height: 56px;
   align-items: center;
-  border-bottom: 1px solid rgba(17, 17, 17, 0.06);
-  background: #fff;
+  border-bottom: 1px solid var(--border-default);
+  background: var(--surface);
 }
 
 .rowHistory {
@@ -251,6 +264,45 @@
   border-bottom: none;
 }
 
+.tableFooter {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tableSummary {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.pagination {
+  display: flex;
+  gap: 8px;
+}
+
+.pageBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border-default);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.pageBtnActive {
+  background: var(--highlight-primary);
+  color: #1b140e;
+  border: none;
+}
+
+.pageBtnDisabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 
 .productCol {
   display: flex;
@@ -259,23 +311,23 @@
 }
 
 .productName {
-  font-size: 14px;
-  font-weight: 800;
-  color: #1d1f23;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 .productSku {
-  font-size: 12px;
-  color: rgba(29, 31, 35, 0.55);
+  font-size: 11px;
+  color: var(--text-muted);
 }
 
 .dateCol {
   font-size: 12px;
-  color: rgba(29, 31, 35, 0.75);
+  color: var(--text-secondary);
 }
 
 .muted {
-  color: rgba(29, 31, 35, 0.5);
+  color: var(--text-muted);
   font-size: 11px;
 }
 
@@ -311,13 +363,13 @@
 }
 
 .ownerCol {
-  font-size: 13px;
-  color: rgba(29, 31, 35, 0.75);
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
 .categoryCol {
-  font-size: 13px;
-  color: rgba(29, 31, 35, 0.75);
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 
 .stockCol {
@@ -326,10 +378,10 @@
 }
 
 .stockPill {
-  padding: 6px 10px;
+  padding: 5px 10px;
   border-radius: 999px;
-  font-size: 11px;
-  font-weight: 800;
+  font-size: 10px;
+  font-weight: 600;
 }
 
 .stockOk {
@@ -349,24 +401,25 @@
 
 .actionCol {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
 }
 
 .actionBtn {
   border: none;
-  background: #f6c40f;
-  color: #1c1c1c;
-  font-weight: 800;
-  font-size: 12px;
+  background: var(--highlight-primary);
+  color: #1b140e;
+  font-weight: 700;
+  font-size: 11px;
   padding: 8px 12px;
   border-radius: 999px;
   cursor: pointer;
+  box-shadow: 0 6px 14px rgba(246, 196, 15, 0.3);
 }
 
 .actionOutlineBtn {
-  border: 1px solid rgba(17, 17, 17, 0.12);
-  background: #fff;
-  color: #1d1f23;
+  border: 1px solid var(--border-default);
+  background: var(--surface);
+  color: var(--text-primary);
   font-weight: 800;
   font-size: 12px;
   padding: 8px 12px;
