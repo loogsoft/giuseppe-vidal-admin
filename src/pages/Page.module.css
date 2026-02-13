@@ -26,7 +26,7 @@
 .card h3 {
   margin-bottom: 4px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-muted);
@@ -34,6 +34,6 @@
 
 .card span {
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 400;
   font-size: 18px;
 }

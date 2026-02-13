@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import styles from "./SupplierDetails.module.css";
 import { SupplierService } from "../../service/Supplier.service";
 import type { SupplierRequestDto } from "../../dtos/request/supplier-request.dto";
+import { Save } from "lucide-react";
 
 export function SupplierDetails() {
 	const navigate = useNavigate();
@@ -153,8 +154,8 @@ export function SupplierDetails() {
 						onClick={onSave}
 						disabled={saving}
 					>
-						{saving ? <span className={styles.spinner} /> : null}
-						{saving ? loadingLabel : actionLabel}
+						<Save size={16} />
+						{saving ? loadingLabel : "Salvar Alterações"}
 					</button>
 				</div>
 			</div>
@@ -352,25 +353,6 @@ export function SupplierDetails() {
 							</label>
 						</div>
 					</section>
-
-					<div className={styles.bottomActions}>
-						<button
-							className={styles.clear}
-							type="button"
-							onClick={onClearForm}
-						>
-							Limpar formulario
-						</button>
-						<button
-							className={styles.save}
-							type="button"
-							onClick={onSave}
-							disabled={saving}
-						>
-							{saving ? <span className={styles.spinner} /> : null}
-							{saving ? loadingLabel : actionLabel}
-						</button>
-					</div>
 				</div>
 			</div>
 		</div>

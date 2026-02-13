@@ -5,6 +5,11 @@ type AuthContextType = {
   login: (token: string) => void;
   logout: () => void;
   loading: boolean;
+  user: {
+    id: string;
+    name?: string;
+    email?: string;
+  } | null;
 };
 
 const AuthContext = createContext({} as AuthContextType);

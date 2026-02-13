@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import styles from "./Orders.module.css";
+import styles from "./ DiscountStock.module.css";
 import { FiChevronDown, FiClock, FiSearch, FiTag, FiTrendingDown } from "react-icons/fi";
 import StatCard from "../../components/StatCard/StatCard";
+import { Plus } from "lucide-react";
 type StockItem = {
   id: string;
   name: string;
@@ -9,7 +10,7 @@ type StockItem = {
   category: string;
   stock: number;
   unit: string;
-  price: number;
+  price: number;  
   level: "ok" | "low" | "critical";
 };
 
@@ -125,7 +126,7 @@ const STOCK_HISTORY: StockHistory[] = [
   },
 ];
 
-export function Orders() {
+export function DiscountStock() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [sortBy, setSortBy] = useState("alpha");
@@ -202,8 +203,10 @@ export function Orders() {
     <div className={styles.page}>
       <header className={styles.header}>
         <div>
-          <div className={styles.breadcrumb}>Estoque / Dar baixa</div>
           <h1 className={styles.title}>Dar baixa no estoque</h1>
+          <p className={styles.subtitle}>
+            Registre saidas, ajuste quantidades e acompanhe o historico.
+          </p>
         </div>
         <div className={styles.headerMeta}>
           <div className={styles.date}>Seg, 09 Fev 2026</div>

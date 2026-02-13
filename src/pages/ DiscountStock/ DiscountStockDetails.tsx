@@ -1,8 +1,9 @@
 import { useMemo } from "react";
-import styles from "./OrderDetails.module.css";
+import styles from "./ DiscountStockDetails.module.css";
 import { useNavigate } from "react-router-dom";
+import { Printer, X, ChevronDown } from "lucide-react";
 
-type OrderItem = {
+type DiscountStockItem = {
   id: string;
   title: string;
   description?: string;
@@ -11,11 +12,11 @@ type OrderItem = {
   observations?: string;
 };
 
-type Order = {
+type DiscountStockRecord = {
   id: string | number;
   statusLabel: string;
   receivedAtLabel: string;
-  items: OrderItem[];
+  items: DiscountStockItem[];
   customer: {
     name: string;
     phoneLabel: string;
@@ -45,12 +46,12 @@ function formatBRL(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-export default function OrderDetails() {
-  const order: Order = useMemo(
+export default function DiscountStockDetails() {
+  const discountStock: DiscountStockRecord = useMemo(
     () => ({
       id: 1234,
-      statusLabel: "EM PREPARO",
-      receivedAtLabel: "Recebido às 19:24 • Há 12 minutos",
+      statusLabel: "EM SEPARACAO",
+      receivedAtLabel: "Registrado às 19:24 • Acompanhe os detalhes da baixa",
       items: [
         {
           id: "1",
@@ -84,7 +85,7 @@ export default function OrderDetails() {
       },
       history: [
         {
-          label: "PEDIDO RECEBIDO",
+          label: "BAIXA REGISTRADA",
           timeLabel: "Hoje às 19:24",
           status: "done",
         },
@@ -94,11 +95,11 @@ export default function OrderDetails() {
           status: "current",
         },
         {
-          label: "EMBALAGEM FINALIZADA",
+          label: "CONFERENCIA FINALIZADA",
           timeLabel: "Aguardando...",
           status: "pending",
         },
-        { label: "ENTREGUE", timeLabel: "Aguardando...", status: "pending" },
+        { label: "FINALIZADA", timeLabel: "Aguardando...", status: "pending" },
       ],
       subtotal: 53.9,
       deliveryFee: 7.0,
@@ -108,8 +109,8 @@ export default function OrderDetails() {
   );
 
   const total = useMemo(
-    () => order.subtotal + order.deliveryFee - order.discount,
-    [order.subtotal, order.deliveryFee, order.discount],
+    () => discountStock.subtotal + discountStock.deliveryFee - discountStock.discount,
+    [discountStock.subtotal, discountStock.deliveryFee, discountStock.discount],
   );
   const navigate = useNavigate();
   return (
@@ -126,20 +127,26 @@ export default function OrderDetails() {
 
           <div className={styles.topbarTitleWrap}>
             <div className={styles.titleRow}>
-              <h1 className={styles.title}>Pedido #{order.id}</h1>
-              <span className={styles.statusPill}>{order.statusLabel}</span>
+              <h1 className={styles.title}>Baixa #{discountStock.id}</h1>
+              <span className={styles.statusPill}>{discountStock.statusLabel}</span>
             </div>
-            <div className={styles.subtitle}>{order.receivedAtLabel}</div>
+            <div className={styles.subtitle}>{discountStock.receivedAtLabel}</div>
           </div>
         </div>
 
         <div className={styles.topbarRight}>
-          <button className={styles.btnGhost}>Imprimir Pedido</button>
-          <button className={styles.btnDanger}>Cancelar</button>
+          <button className={styles.btnGhost}>
+            <Printer size={16} />
+            Imprimir baixa
+          </button>
+          <button className={styles.btnDanger}>
+            <X size={16} />
+            Cancelar
+          </button>
 
           <div className={styles.dropdownWrap}>
             <button className={styles.btnPrimary}>
-              Alterar Status <span className={styles.caret}>▾</span>
+              Alterar Status <ChevronDown size={16} />
             </button>
           </div>
         </div>
@@ -151,15 +158,15 @@ export default function OrderDetails() {
             <div className={styles.cardHeader}>
               <div className={styles.cardHeaderLeft}>
                 <span className={styles.headerDot}>⚠</span>
-                <span className={styles.cardTitle}>ITENS DO PEDIDO</span>
+                <span className={styles.cardTitle}>ITENS DA BAIXA</span>
               </div>
               <span className={styles.cardMeta}>
-                {order.items.length} itens
+                {discountStock.items.length} itens
               </span>
             </div>
 
             <div className={styles.itemsList}>
-              {order.items.map((item) => (
+              {discountStock.items.map((item) => (
                 <div key={item.id} className={styles.itemRow}>
                   <div className={styles.itemIcon}>{item.iconText ?? "•"}</div>
 
@@ -201,26 +208,26 @@ export default function OrderDetails() {
               <div className={styles.summaryRow}>
                 <span className={styles.summaryLabel}>Subtotal</span>
                 <span className={styles.summaryValue}>
-                  {formatBRL(order.subtotal)}
+                  {formatBRL(discountStock.subtotal)}
                 </span>
               </div>
               <div className={styles.summaryRow}>
-                <span className={styles.summaryLabel}>Taxa de Entrega</span>
+                <span className={styles.summaryLabel}>Taxa de Operacao</span>
                 <span className={styles.summaryValue}>
-                  {formatBRL(order.deliveryFee)}
+                  {formatBRL(discountStock.deliveryFee)}
                 </span>
               </div>
               <div className={styles.summaryRow}>
                 <span className={styles.summaryLabel}>Descontos</span>
                 <span className={styles.summaryValueNegative}>
-                  - {formatBRL(order.discount)}
+                  - {formatBRL(discountStock.discount)}
                 </span>
               </div>
 
               <div className={styles.summaryDivider} />
 
               <div className={styles.totalRow}>
-                <div className={styles.totalLabel}>TOTAL DO PEDIDO</div>
+                <div className={styles.totalLabel}>TOTAL DA BAIXA</div>
                 <div className={styles.totalValue}>{formatBRL(total)}</div>
               </div>
 
@@ -240,9 +247,9 @@ export default function OrderDetails() {
             <div className={styles.customerRow}>
               <div className={styles.avatar}>👤</div>
               <div className={styles.customerInfo}>
-                <div className={styles.customerName}>{order.customer.name}</div>
+                <div className={styles.customerName}>{discountStock.customer.name}</div>
                 <div className={styles.customerPhone}>
-                  {order.customer.phoneLabel}
+                  {discountStock.customer.phoneLabel}
                 </div>
               </div>
             </div>
@@ -261,13 +268,13 @@ export default function OrderDetails() {
             </div>
 
             <div className={styles.addressBlock}>
-              <div className={styles.addressLine1}>{order.address.street}</div>
+              <div className={styles.addressLine1}>{discountStock.address.street}</div>
               <div className={styles.addressLine2}>
-                {order.address.cityState}
+                {discountStock.address.cityState}
               </div>
-              {order.address.complement ? (
+              {discountStock.address.complement ? (
                 <div className={styles.addressLine3}>
-                  {order.address.complement}
+                  {discountStock.address.complement}
                 </div>
               ) : null}
             </div>
@@ -280,18 +287,18 @@ export default function OrderDetails() {
                   FORMA DE PAGAMENTO
                 </span>
               </div>
-              {order.payment.paidLabel ? (
+              {discountStock.payment.paidLabel ? (
                 <span className={styles.paidPill}>
-                  {order.payment.paidLabel}
+                  {discountStock.payment.paidLabel}
                 </span>
               ) : null}
             </div>
 
             <div className={styles.paymentBlock}>
-              <div className={styles.paymentMethod}>{order.payment.method}</div>
-              {order.payment.details ? (
+              <div className={styles.paymentMethod}>{discountStock.payment.method}</div>
+              {discountStock.payment.details ? (
                 <div className={styles.paymentDetails}>
-                  {order.payment.details}
+                  {discountStock.payment.details}
                 </div>
               ) : null}
             </div>
@@ -301,14 +308,14 @@ export default function OrderDetails() {
             <div className={styles.cardHeader}>
               <div className={styles.cardHeaderLeft}>
                 <span className={styles.cardTitleMuted}>
-                  HISTÓRICO DO PEDIDO
+                  HISTORICO DA BAIXA
                 </span>
               </div>
             </div>
 
             <div className={styles.timeline}>
-              {order.history.map((h, idx) => {
-                const isLast = idx === order.history.length - 1;
+              {discountStock.history.map((h, idx) => {
+                const isLast = idx === discountStock.history.length - 1;
                 return (
                   <div key={`${h.label}-${idx}`} className={styles.timelineRow}>
                     <div className={styles.tlLeft}>

@@ -16,10 +16,10 @@
   gap: 10px;
 }
 
-.orderNumber {
+.stockNumber {
   color: #ffd400;
   font-size: 16px;
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: 0.2px;
   line-height: 1;
 }
@@ -27,7 +27,7 @@
 .customerName {
   margin-top: 4px;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-primary);
 }
 
@@ -37,7 +37,7 @@
   color: var(--text-secondary);
   padding: 6px 10px;
   border-radius: 999px;
-  font-weight: 800;
+  font-weight: 600;
   font-size: 11px;
   min-width: auto;
   text-align: center;
@@ -120,7 +120,7 @@
   background: #ffd400;
   box-shadow: 1px 3px 10px rgba(255, 212, 0, 0.9);
   color: #ffffff;
-  font-weight: 900;
+  font-weight: 600;
   font-size: 12px;
   padding: 8px 12px;
   border-radius: 999px;
@@ -136,7 +136,7 @@
   cursor: pointer;
   background:  rgba(59, 130, 246, 0.9);
   color: #fafafa;
-  font-weight: 900;
+  font-weight: 600;
   font-size: 12px;
   padding: 8px 12px;
   border-radius: 999px;
@@ -152,7 +152,7 @@
   cursor: pointer;
   background: rgba(249, 115, 22, 0.95);
   color: #ffffff;
-  font-weight: 900;
+  font-weight: 600;
   font-size: 12px;
   padding: 8px 12px;
   border-radius: 999px;

@@ -10,13 +10,17 @@ import {
   FiSearch,
 } from "react-icons/fi";
 import ProductCard from "../../components/ProductCard";
-import { CgFileAdd } from "react-icons/cg";
+import { SkeletonCard } from "../../components/SkeletonCard";
+import { FilterModal } from "../../components/FilterModal";
+import { Plus } from "lucide-react";
 import type { CategoryKey } from "../../types/Product-type";
 import { ProductService } from "../../service/Product.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import { useNavigate } from "react-router-dom";
 import StatCard from "../../components/StatCard/StatCard";
+
+type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
 
 export function Products() {
   const [activeCat, setActiveCat] = useState<CategoryKey>("all");
@@ -26,6 +30,18 @@ export function Products() {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [filters, setFilters] = useState<{
+    minPrice: string;
+    maxPrice: string;
+    category: CategoryKey;
+    sortBy: SortOption;
+  }>({
+    minPrice: "",
+    maxPrice: "",
+    category: "all",
+    sortBy: null,
+  });
   const categoryFromKey = (key: CategoryKey) => {
     switch (key) {
       case "shirt":
@@ -63,17 +79,43 @@ export function Products() {
 
   const filtered = useMemo(() => {
     let current = products;
-    if (activeCat !== "all") {
-      const category = categoryFromKey(activeCat);
+    
+    // Filtro de categoria (select ou modal)
+    const categoryToFilter = filters.category !== "all" ? filters.category : activeCat;
+    if (categoryToFilter !== "all") {
+      const category = categoryFromKey(categoryToFilter);
       if (category) {
         current = current.filter((p) => p.category === category);
       }
     }
 
+    // Filtro de busca
     const trimmed = query.trim().toLowerCase();
-    if (!trimmed) return current;
-    return current.filter((p) => p.name.toLowerCase().includes(trimmed));
-  }, [activeCat, products, query]);
+    if (trimmed) {
+      current = current.filter((p) => p.name.toLowerCase().includes(trimmed));
+    }
+
+    // Filtro de preço
+    if (filters.minPrice) {
+      const min = parseFloat(filters.minPrice);
+      current = current.filter((p) => parseFloat(p.price) >= min);
+    }
+    if (filters.maxPrice) {
+      const max = parseFloat(filters.maxPrice);
+      current = current.filter((p) => parseFloat(p.price) <= max);
+    }
+
+    // Ordenação
+    if (filters.sortBy === "price-asc") {
+      current = [...current].sort((a, b) => parseFloat(a.price) - parseFloat(b.price));
+    } else if (filters.sortBy === "price-desc") {
+      current = [...current].sort((a, b) => parseFloat(b.price) - parseFloat(a.price));
+    } else if (filters.sortBy === "name-asc") {
+      current = [...current].sort((a, b) => a.name.localeCompare(b.name));
+    }
+
+    return current;
+  }, [activeCat, products, query, filters]);
 
   const total = filtered.length;
 
@@ -180,6 +222,9 @@ export function Products() {
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>Gestao de Produtos</h1>
+          <p className={styles.subtitle}>
+            Organize seu catalogo, precos e niveis de estoque em um so lugar.
+          </p>
         </div>
 
         <div className={styles.headerActions}>
@@ -188,8 +233,8 @@ export function Products() {
             type="button"
             onClick={() => navigate("/product-details")}
           >
-            <CgFileAdd size={18} />
-            Cadastrar novo produto
+            <Plus size={16} />
+            Cadastrar Produto
           </button>
         </div>
       </div>
@@ -249,15 +294,35 @@ export function Products() {
                 </option>
               ))}
             </select>
-            <button className={styles.filterBtn} type="button">
-              <FiFilter />
-              Filtros
-            </button>
+            <div style={{ position: 'relative' }}>
+              <button 
+                className={styles.filterBtn} 
+                type="button"
+                onClick={() => setIsFilterModalOpen(true)}
+              >
+                <FiFilter />
+                Filtros
+              </button>
+              <FilterModal
+                isOpen={isFilterModalOpen}
+                onClose={() => setIsFilterModalOpen(false)}
+                onApply={(newFilters) => {
+                  setFilters(newFilters);
+                  setActiveCat(newFilters.category);
+                }}
+                categories={CATEGORIES}
+                initialFilters={filters}
+              />
+            </div>
           </div>
         </div>
 
         {loading ? (
-          <div style={{ padding: 12 }}>Carregando...</div>
+          <div className={styles.grid}>
+            {Array.from({ length: 12 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
         ) : error ? (
           <div style={{ padding: 12 }}>{error}</div>
         ) : (

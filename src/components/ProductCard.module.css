@@ -130,7 +130,7 @@
   padding: 6px 10px;
   border-radius: 999px;
   font-size: 10px;
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: 0.08em;
   margin-top: 12px;
   display: inline-flex;
@@ -150,7 +150,7 @@
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 9px;
-  font-weight: 900;
+  font-weight: 600;
   letter-spacing: 0.14em;
   border: 1px solid transparent;
 }
@@ -178,7 +178,7 @@
   background: var(--surface-muted);
   border: 1px solid var(--border-default);
   color: var(--text-muted);
-  font-weight: 900;
+  font-weight: 600;
   font-size: 10px;
   letter-spacing: 0.12em;
 }
@@ -204,7 +204,7 @@
 .name {
   margin-top: 10px;
   font-size: 14px;
-  font-weight: 900;
+  font-weight: 600;
   color: var(--text-primary);
 }
 

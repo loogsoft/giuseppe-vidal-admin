@@ -3,6 +3,17 @@ import type { VerifyCoderequestDto } from "../dtos/request/verification-code-req
 import type { LoginResponseDto } from "../dtos/response/login-response.dto";
 import api from "./api";
 
+type UserMeResponse = {
+  id: string;
+  email: string;
+};
+
+type UserProfileResponse = {
+  id: string;
+  name?: string;
+  email?: string;
+};
+
 export const UserService = {
   verifyEmail: async (dto: LoginRequestDto) => {
     const response = await api.post(
@@ -27,4 +38,15 @@ export const UserService = {
     );
     return response.data;
   },
+
+  getMe: async (): Promise<UserMeResponse> => {
+    const response = await api.get<UserMeResponse>("/users/me");
+    return response.data;
+  },
+
+  findOne: async (id: string): Promise<UserProfileResponse> => {
+    const response = await api.get<UserProfileResponse>(`/users/${id}`);
+    return response.data;
+  },
+  
 };

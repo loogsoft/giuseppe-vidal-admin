@@ -18,10 +18,13 @@ import {
 } from "lucide-react";
 import { IoExitOutline } from "react-icons/io5";
 import { useAuth } from "../../contexts/useAuth";
-import logo from "../../assets/logo.png";
+import { useTheme } from "../../contexts/useTheme";
+import logoLight from "../../assets/logo-preta.png";
+import logoDark from "../../assets/logo-branco.png";
 
 export function Sidebar() {
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const { theme } = useTheme();
   const navigate = useNavigate();
   const [reportsOpen, setReportsOpen] = useState(false);
 
@@ -55,12 +58,41 @@ export function Sidebar() {
     // 2️⃣ Redireciona para login
     navigate("/login");
   }
+
+  const displayName = user?.name || user?.email?.split("@")[0] || "Usuario";
+  
+  // Trunca o email de forma inteligente
+  const truncateEmail = (email: string) => {
+    if (!email) return "";
+    const [username, domain] = email.split("@");
+    if (username && domain) {
+      // Se o email é muito longo, exibe "user@dom..." 
+      const domainShort = domain.length > 12 ? domain.substring(0, 12) + "..." : domain;
+      const emailShort = `${username}@${domainShort}`;
+      return emailShort.length > 25 ? emailShort.substring(0, 22) + "..." : emailShort;
+    }
+    return email.length > 25 ? email.substring(0, 22) + "..." : email;
+  };
+  
+  const displayEmail = truncateEmail(user?.email || "usuario@email.com");
+  const initials = displayName
+    .split(" ")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("")
+    .slice(0, 2);
   return (
     <aside className={styles.sidebar}>
       <div>
         <div className={styles.brand}>
           <div className={styles.brandIcon} aria-hidden="true">
-            <img src={logo} alt="Logo" style={{ width: 40, height: 40 }} />
+            <img
+              src={theme === "dark" ? logoDark : logoLight}
+              alt="Logo"
+              style={{ width: 40, height: 40 }}
+            />
           </div>
           <div style={{ paddingTop: 10 }}>
             <strong className={styles.brandTitle}>GIUSEPPE</strong>
@@ -91,14 +123,13 @@ export function Sidebar() {
           </NavLink>
 
           <NavLink
-            to="/pedidos"
+            to="/discount-stock"
             className={({ isActive }) =>
               isActive ? styles.active : styles.link
             }
           >
             <FiShoppingCart className={styles.icon} />
             <span>Baixa de estoque</span>
-            <span className={styles.badge}>12</span>
           </NavLink>
 
           <NavLink
@@ -141,19 +172,38 @@ export function Sidebar() {
                   isActive ? styles.subLinkActive : styles.subLink
                 }
               >
-                <span className={styles.subIcon}>
-                  {item.icon}
-                </span>
-                <span >{item.label}</span>
+                <span className={styles.subIcon}>{item.icon}</span>
+                <span>{item.label}</span>
               </NavLink>
             ))}
           </div>
         </nav>
       </div>
       <div className={styles.footer}>
+        <div className={styles.footerDivider} />
+        <div
+          className={styles.userCard}
+          onClick={() => navigate(`/config/${user?.id}`)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              navigate(`/config/${user?.id}`);
+            }
+          }}
+        >
+          <div className={styles.userAvatar}>{initials}</div>
+          <div className={styles.userInfo}>
+            <div className={styles.userName}>{displayName}</div>
+            <div className={styles.userEmail}>{displayEmail}</div>
+          </div>
+        </div>
+
         <NavLink
-          to="/configuracoes"
-          className={({ isActive }) => (isActive ? styles.active : styles.link)}
+          to={"/config"}
+          className={({ isActive }) =>
+            isActive ? styles.active : styles.linkButton
+          }
         >
           <FiSettings className={styles.icon} />
           <span>Configurações</span>

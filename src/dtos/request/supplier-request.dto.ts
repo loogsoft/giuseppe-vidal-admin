@@ -8,5 +8,5 @@ export interface SupplierRequestDto {
   location?: string;
   status?: SupplierStatus;
   avatarColor?: string;
-  openOrders?: number;
+  openDiscountStock?: number;
 }

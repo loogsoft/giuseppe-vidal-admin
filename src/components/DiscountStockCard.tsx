@@ -1,26 +1,26 @@
 import { useNavigate } from "react-router-dom";
-import { OrderStatusEnum } from "../dtos/enums/orders-status.enum";
-import styles from "./OrderCard.module.css";
+import { DiscountStockStatusEnum } from "../dtos/enums/discount-stock-status.enum";
+import styles from "./DiscountStockCard.module.css";
 import { FiChevronRight } from "react-icons/fi";
 
-type OrderItem = {
+type DiscountStockItem = {
   name: string;
   quantity: number;
 };
 
 type Props = {
-  orderNumber: string;
+  stockNumber: string;
   customerName: string;
   minutesAgo: number;
-  items: OrderItem[];
+  items: DiscountStockItem[];
   total: number;
   onAccept?: () => void;
-  status: OrderStatusEnum;
+  status: DiscountStockStatusEnum;
   navigateTo: string;
 };
 
-export function OrderCard({
-  orderNumber,
+export function DiscountStockCard({
+  stockNumber,
   customerName,
   minutesAgo,
   items,
@@ -36,9 +36,9 @@ export function OrderCard({
 
   const statusClass =
     {
-      [OrderStatusEnum.NEW]: "btnNew",
-      [OrderStatusEnum.ON_ROUTE]: "btnOnRoute",
-      [OrderStatusEnum.PREPARING]: "btnPreparing",
+      [DiscountStockStatusEnum.NEW]: "btnNew",
+      [DiscountStockStatusEnum.ON_ROUTE]: "btnOnRoute",
+      [DiscountStockStatusEnum.PREPARING]: "btnPreparing",
     }[status] ?? "btnDefault";
 
   const navigate = useNavigate();
@@ -46,7 +46,7 @@ export function OrderCard({
     <div className={styles.card} onClick={() => navigate(navigateTo)}>
       <div className={styles.header}>
         <div className={styles.left}>
-          <div className={styles.orderNumber}>#{orderNumber}</div>
+          <div className={styles.stockNumber}>#{stockNumber}</div>
           <div className={styles.customerName}>{customerName}</div>
         </div>
 
@@ -70,11 +70,11 @@ export function OrderCard({
         <div className={styles.price}>{price}</div>
 
         <button className={styles[statusClass]} onClick={onAccept}>
-          {status === OrderStatusEnum.NEW
+          {status === DiscountStockStatusEnum.NEW
             ? "Aceitar"
-            : status === OrderStatusEnum.PREPARING
+            : status === DiscountStockStatusEnum.PREPARING
               ? "Finalizar"
-              : status === OrderStatusEnum.ON_ROUTE
+              : status === DiscountStockStatusEnum.ON_ROUTE
                 ? "Concluir"
                 : ""}{" "}
           <FiChevronRight className={styles.acceptIcon} />

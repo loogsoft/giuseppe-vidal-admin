@@ -11,8 +11,9 @@ import {
   FiUserCheck,
   FiUsers,
 } from "react-icons/fi";
-import { CgFileAdd } from "react-icons/cg";
+import { Plus } from "lucide-react";
 import ProductCard from "../../components/ProductCard";
+import { SkeletonCard } from "../../components/SkeletonCard";
 import styles from "./Supplier.module.css";
 import { SupplierService } from "../../service/Supplier.service";
 import type { SupplierResponseDto } from "../../dtos/response/supplier-response.dto";
@@ -30,7 +31,7 @@ type SupplierCardData = {
   status: SupplierStatus;
   initials: string;
   avatarColor: string;
-  openOrders: number;
+  openDiscountStock: number;
 };
 
 const AVATAR_COLORS = ["#fff1d6", "#e7e7e7", "#ffe5e5", "#fff0d9", "#e9f1ff", "#eee3ff"];
@@ -85,7 +86,7 @@ const mapSupplierCard = (
     status: normalizeStatus(item.status),
     initials: getInitials(name),
     avatarColor: String(item.avatarColor ?? AVATAR_COLORS[index % AVATAR_COLORS.length]),
-    openOrders: Number(item.openOrders ?? 0),
+    openDiscountStock: Number(item.openDiscountStock ?? 0),
   };
 };
 
@@ -167,7 +168,10 @@ export function Supplier() {
 
   const totalSuppliers = suppliers.length;
   const activeSuppliers = suppliers.filter((s) => s.status === "active").length;
-  const openOrders = suppliers.reduce((sum, s) => sum + s.openOrders, 0);
+  const openDiscountStock = suppliers.reduce(
+    (sum, s) => sum + s.openDiscountStock,
+    0,
+  );
   const categoriesTotal = new Set(suppliers.map((s) => s.category)).size;
 
 
@@ -176,6 +180,9 @@ export function Supplier() {
       <div className={styles.header}>
         <div>
           <h1 className={styles.title}>Gestao de Fornecedores</h1>
+          <p className={styles.subtitle}>
+            Centralize contatos, categorias e desempenho dos seus fornecedores.
+          </p>
         </div>
 
         <div className={styles.headerActions}>
@@ -184,8 +191,8 @@ export function Supplier() {
             type="button"
             onClick={() => navigate("/supplier-details")}
           >
-            <CgFileAdd size={18} />
-            Cadastrar novo fornecedor
+            <Plus size={16} />
+            Cadastrar Fornecedor
           </button>
         </div>
       </div>
@@ -202,8 +209,8 @@ export function Supplier() {
           icon={<FiUserCheck />}
         />
         <StatCard
-          label="PEDIDOS EM ABERTO"
-          value={openOrders}
+          label="BAIXAS EM ABERTO"
+          value={openDiscountStock}
           icon={<FiPackage />}
         />
         <StatCard
@@ -228,31 +235,14 @@ export function Supplier() {
               }}
             />
           </div>
-
-          <div className={styles.filterActions}>
-            <select
-              className={styles.categorySelect}
-              value={activeCat}
-              onChange={(event) => {
-                setActiveCat(event.target.value);
-                setPage(1);
-              }}
-            >
-              {categories.map((c) => (
-                <option key={c} value={c}>
-                  {c === "all" ? "Todas as categorias" : c}
-                </option>
-              ))}
-            </select>
-            <button className={styles.filterBtn} type="button">
-              <FiFilter />
-              Filtros
-            </button>
-          </div>
         </div>
 
         {loading ? (
-          <div style={{ padding: 12 }}>Carregando...</div>
+          <div className={styles.grid}>
+            {Array.from({ length: 12 }).map((_, i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
         ) : error ? (
           <div style={{ padding: 12 }}>{error}</div>
         ) : (

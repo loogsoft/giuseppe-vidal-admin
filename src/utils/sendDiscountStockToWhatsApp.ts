@@ -6,10 +6,10 @@ type CartItem = {
   addons?: string[];
 };
 
-export function sendOrderToWhatsApp(items: CartItem[]) {
+export function sendDiscountStockToWhatsApp(items: CartItem[]) {
   if (!items || items.length === 0) return;
 
-  let message = "*NOVO PEDIDO*\n\n";
+  let message = "*NOVA BAIXA DE ESTOQUE*\n\n";
   let total = 0;
 
   items.forEach((item) => {
@@ -17,7 +17,7 @@ export function sendOrderToWhatsApp(items: CartItem[]) {
     total += subtotal;
 
     message += `• ${item.name}\n`;
-    message += `Quanttdade: ${item.quantity}\n`;
+    message += `Quantidade: ${item.quantity}\n`;
     message += `💰 Valor: R$ ${subtotal.toFixed(2)}\n`;
 
     if (item.addons && item.addons.length > 0) {
@@ -32,7 +32,7 @@ export function sendOrderToWhatsApp(items: CartItem[]) {
   });
 
   message += `TOTAL: R$ ${total.toFixed(2)}\n`;
-  message += "Pedido feito pelo site";
+  message += "Baixa registrada pelo site";
 
   const phone = "5564999663524";
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;

@@ -5,6 +5,7 @@ import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import { ProductStatusEnum } from "../../dtos/enums/product-status.enum";
 import { ProductService } from "../../service/Product.service";
 import type { ProductRequest } from "../../dtos/request/product-request.dto";
+import { Save } from "lucide-react";
 
 export function ProductsDetails() {
   const navigate = useNavigate();
@@ -185,8 +186,8 @@ export function ProductsDetails() {
             onClick={onSave}
             disabled={saving}
           >
-            {saving ? <span className={styles.spinner} /> : null}
-            {saving ? loadingLabel : actionLabel}
+            <Save size={16} />
+            {saving ? loadingLabel : "Salvar Alterações"}
           </button>
         </div>
       </div>

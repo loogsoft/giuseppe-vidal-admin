@@ -5,7 +5,7 @@ import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import { UserService } from "../../service/User.service";
-import logo from "../../assets/logo.png";
+import logo from "../../assets/logo-branco.png";
 import { CircularProgress } from "@mui/material";
 import { toast } from "react-toastify";
 import { HealthService } from "../../service/health.service";
@@ -157,7 +157,10 @@ export default function Login({
   }
 
   return (
-    <div className={styles.page} style={{ "--heroImage": `url(${backgroundImageUrl})` } as CSSProperties}>
+    <div
+      className={styles.page}
+      style={{ "--heroImage": `url(${backgroundImageUrl})` } as CSSProperties}
+    >
       <div className={styles.left}>
         <div className={styles.leftBg} />
         <div className={styles.leftGlow} />

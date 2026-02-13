@@ -17,7 +17,7 @@ type MetricCard = {
   label: string;
   value: string;
   badge: string;
-  icon: "money" | "orders" | "ticket" | "top";
+  icon: "money" | "discountStock" | "ticket" | "top";
   sub?: string;
   badgeTone?: "success" | "neutral";
 };
@@ -59,7 +59,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         label: "VENDAS TOTAIS",
         value: "128",
         badge: "+3.1%",
-        icon: "orders",
+        icon: "discountStock",
         badgeTone: "success",
       },
       {
@@ -135,7 +135,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         label: "VENDAS TOTAIS",
         value: "4,289",
         badge: "+12.5%",
-        icon: "orders",
+        icon: "discountStock",
         badgeTone: "success",
       },
       {
@@ -211,7 +211,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         label: "VENDAS TOTAIS",
         value: "18,902",
         badge: "+6.8%",
-        icon: "orders",
+        icon: "discountStock",
         badgeTone: "success",
       },
       {
@@ -282,7 +282,7 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
 
 const METRIC_ICONS: Record<MetricCard["icon"], JSX.Element> = {
   money: <FiDollarSign />,
-  orders: <FiShoppingCart />,
+  discountStock: <FiShoppingCart />,
   ticket: <FiBox />,
   top: <FiAward />,
 };
@@ -303,25 +303,12 @@ export function Dashboard() {
   const { theme } = useTheme();
 
   const periodData = useMemo(() => DASHBOARD_MOCK[period], [period]);
-  const chartColors = useMemo(() => {
-    if (typeof window === "undefined") {
-      return {
-        primary: "#f6c40f",
-        secondary: "#ffe29a",
-        muted: "#9aa0a6",
-        grid: "rgba(0, 0, 0, 0.06)",
-      };
-    }
-    const stylesVars = getComputedStyle(document.documentElement);
-    const readVar = (name: string, fallback: string) =>
-      stylesVars.getPropertyValue(name).trim() || fallback;
-    return {
-      primary: readVar("--highlight-primary", "#f6c40f"),
-      secondary: readVar("--highlight-secondary", "#ffe29a"),
-      muted: readVar("--text-muted", "#9aa0a6"),
-      grid: readVar("--border-default", "rgba(0, 0, 0, 0.06)"),
-    };
-  }, [theme]);
+  const chartColors = {
+    primary: "var(--highlight-primary)",
+    secondary: "var(--highlight-secondary)",
+    muted: "var(--text-muted)",
+    grid: "var(--border-default)",
+  };
 
   return (
     <div className={styles.page}>
@@ -400,6 +387,7 @@ export function Dashboard() {
         <div className={styles.chartWrap}>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart
+              key={theme}
               data={periodData.chart}
               margin={{ top: 8, right: 8, left: 8, bottom: 6 }}
             >
@@ -447,7 +435,7 @@ export function Dashboard() {
 
         <div className={styles.table}>
           <div className={`${styles.row} ${styles.thead}`}>
-            <div>ID PEDIDO</div>
+            <div>ID BAIXA</div>
             <div>DATA/HORA</div>
             <div>CLIENTE</div>
             <div>PRODUTOS</div>
@@ -494,7 +482,7 @@ export function Dashboard() {
         </div>
 
         <div className={styles.tableFooter}>
-          <div className={styles.muted}>Mostrando 4 de 432 pedidos</div>
+          <div className={styles.muted}>Mostrando 4 de 432 baixas</div>
 
           <div className={styles.pagination}>
             <button className={`${styles.pageBtn} ${styles.pageBtnActive}`} type="button">
