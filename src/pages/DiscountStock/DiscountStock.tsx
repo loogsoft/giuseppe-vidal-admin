@@ -194,7 +194,7 @@ export function DiscountStock() {
       const matchesPrice = 
         (!filters.minPrice || item.price >= Number(filters.minPrice)) &&
         (!filters.maxPrice || item.price <= Number(filters.maxPrice));
-      
+       
       const matchesStock =
         (!filters.minStock || item.stock >= Number(filters.minStock)) &&
         (!filters.maxStock || item.stock <= Number(filters.maxStock));
