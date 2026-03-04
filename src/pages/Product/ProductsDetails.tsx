@@ -9,6 +9,7 @@ import type { ProductVariationRequestDto } from "../../dtos/request/product-vari
 import type { ProductVariationResponseDto } from "../../dtos/response/product-variation-response.dto";
 import { Save, Plus, X } from "lucide-react";
 import { ImageGallery } from "../../components/ImageGallery";
+import { ButtonBack } from "../../components/ButtonBack/ButtonBack";
 
 type Variation = ProductVariationRequestDto | ProductVariationResponseDto;
 
@@ -29,8 +30,9 @@ export function ProductsDetails() {
   );
   const [price, setPrice] = useState("");
   const [promoPrice, setPromoPrice] = useState("");
-  const [lowStock, setLowStock] = useState("");
-  const [stockEnabled, setStockEnabled] = useState(true);
+  const [lowStock, setLowStock] = useState("5");
+  const [lowStockAlertEnabled, setLowStockAlertEnabled] = useState(true);
+  const [stockEnabled, setStockEnabled] = useState(false);
   const [stock, setStock] = useState("");
   const [supplierId, setSupplierId] = useState("");
   const [imageNames, setImageNames] = useState<string[]>([]);
@@ -40,17 +42,7 @@ export function ProductsDetails() {
   const [saving, setSaving] = useState(false);
 
   // Variation states
-  const [variations, setVariations] = useState<Variation[]>([
-    {
-      name: "Preto P",
-      color: "Preto",
-      size: "P",
-      price: 49.99,
-      stock: 15,
-      isActive: true,
-      images: undefined,
-    },
-  ]);
+  const [variations, setVariations] = useState<Variation[]>([]);
   const [expandedVariationForm, setExpandedVariationForm] = useState(false);
   const [variationPrice, setVariationPrice] = useState("");
   const [variationStock, setVariationStock] = useState("");
@@ -71,6 +63,17 @@ export function ProductsDetails() {
   const categoryOptions = useMemo(() => Object.values(ProductCategoryEnum), []);
   const statusOptions = useMemo(() => Object.values(ProductStatusEnum), []);
 
+  const getStatusLabel = (status: ProductStatusEnum) => {
+    switch (status) {
+      case ProductStatusEnum.ACTIVED:
+        return "Ativo";
+      case ProductStatusEnum.DISABLED:
+        return "Desativado";
+      default:
+        return status;
+    }
+  };
+
   useEffect(() => {
     const loadProduct = async () => {
       if (!isEdit || !id) {
@@ -87,6 +90,7 @@ export function ProductsDetails() {
         data.promoPrice ? String(data.promoPrice).replace(".", ",") : "",
       );
       setLowStock(String(data.lowStock ?? ""));
+      setLowStockAlertEnabled(!!data.lowStock && data.lowStock > 0);
       setStockEnabled(!!data.isActiveStock);
       setStock(String(data.stock ?? ""));
       setImageNames((data.images || []).map((img) => img.fileName));
@@ -314,7 +318,7 @@ export function ProductsDetails() {
     }
 
     // Clean variations: keep ONLY fields expected by backend
-    // Remove: id, createdAt, updatedAt, createdBy, updatedBy, images, etc
+    // Remove: id, createdAt, updatedAt, createdBy, updatedBy, etc
     const cleanVariations =
       variations.length > 0
         ? variations.map((variation) => {
@@ -334,6 +338,7 @@ export function ProductsDetails() {
               isActive: variation.isActive ?? true,
               color: variation.color,
               size: variation.size,
+              images: variation.images,
             };
           })
         : undefined;
@@ -345,31 +350,39 @@ export function ProductsDetails() {
       status,
       price: Number(toDot(price)),
       promoPrice: promoPrice.trim() ? Number(toDot(promoPrice)) : undefined,
-      lowStock: Number(lowStock || "0"),
+      lowStock: lowStockAlertEnabled ? Number(lowStock || "0") : 0,
       isActiveStock: stockEnabled,
       stock: stockEnabled ? Number(stock || 0) : 0,
       variations: cleanVariations,
       supplierId: supplierId.trim() || undefined,
     } as ProductRequest;
 
+    const allFiles = [...imageFiles];
+    variations.forEach((variation) => {
+      if (variation.images && Array.isArray(variation.images)) {
+        variation.images.forEach((img) => {
+          if (img instanceof File) {
+            allFiles.push(img);
+          }
+        });
+      }
+    });
+
     try {
       setSaving(true);
       if (isEdit && id) {
-        // TODO: Handle variation image uploads separately on edit
-        await ProductService.update(id, payload);
+        await ProductService.update(id, payload, imageFiles.length > 0 ? imageFiles : undefined);
         navigate(-1);
         return;
       }
-
-      // TODO: Handle variation image uploads separately on create
-      await ProductService.create(payload, imageFiles);
+      await ProductService.create(payload, allFiles);
       navigate(-1);
     } finally {
       setSaving(false);
     }
   };
 
-  const actionLabel = isEdit ? "Salvar alteracoes" : "Criar produto";
+  const actionLabel = isEdit ? "Salvar alterações" : "Criar produto";
   const loadingLabel = isEdit ? "Salvando..." : "Criando...";
 
   return (
@@ -400,17 +413,19 @@ export function ProductsDetails() {
       />
 
       <div className={styles.top}>
-        <div>
-          <h1 className={styles.title}>
-            {isEdit ? "Editar produto" : "Cadastro de novo produto"}
-          </h1>
-          <p className={styles.subtitle}>
-            {isEdit
-              ? "Atualize as informacoes principais do produto."
-              : "Preencha as informacoes principais do produto."}
-          </p>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          <ButtonBack />
+          <div>
+            <h1 className={styles.title}>
+              {isEdit ? "Editar produto" : "Cadastro de novo produto"}
+            </h1>
+            <p className={styles.subtitle}>
+              {isEdit
+                ? "Atualize as informações principais do produto."
+                : "Preencha as informações principais do produto."}
+            </p>
+          </div>
         </div>
-
         <div className={styles.topActions}>
           <button
             className={styles.discard}
@@ -446,7 +461,7 @@ export function ProductsDetails() {
         <div className={styles.formColumn}>
           <section className={styles.panel}>
             <div className={styles.panelHeader}>
-              <span className={styles.panelTitle}>Informacoes do produto</span>
+              <span className={styles.panelTitle}>Informações do produto</span>
             </div>
 
             <div className={styles.form}>
@@ -461,7 +476,7 @@ export function ProductsDetails() {
               </label>
 
               <label className={styles.field}>
-                <span className={styles.label}>Descricao</span>
+                <span className={styles.label}>Descrição</span>
                 <textarea
                   className={styles.textarea}
                   placeholder="Descreva o produto"
@@ -498,7 +513,7 @@ export function ProductsDetails() {
                   >
                     {statusOptions.map((option) => (
                       <option key={option} value={option}>
-                        {option}
+                        {getStatusLabel(option)}
                       </option>
                     ))}
                   </select>
@@ -517,7 +532,7 @@ export function ProductsDetails() {
 
               <div className={styles.row2}>
                 <label className={styles.field}>
-                  <span className={styles.label}>Preco</span>
+                  <span className={styles.label}>Preço</span>
                   <input
                     className={styles.input}
                     placeholder="0,00"
@@ -526,7 +541,7 @@ export function ProductsDetails() {
                   />
                 </label>
                 <label className={styles.field}>
-                  <span className={styles.label}>Preco promocional</span>
+                  <span className={styles.label}>Preço promocional</span>
                   <input
                     className={styles.input}
                     placeholder="0,00"
@@ -536,40 +551,61 @@ export function ProductsDetails() {
                 </label>
               </div>
 
-              <div className={styles.row2}>
-                <label className={styles.field}>
+              <div className={styles.field}>
+                <div className={styles.fieldHeader}>
                   <span className={styles.label}>Controle de estoque</span>
-                  <select
-                    className={styles.select}
-                    value={stockEnabled ? "true" : "false"}
-                    onChange={(event) =>
-                      setStockEnabled(event.target.value === "true")
-                    }
+                  <button
+                    type="button"
+                    className={`${styles.toggleSwitch} ${
+                      stockEnabled ? styles.toggleSwitchActive : ""
+                    }`}
+                    onClick={() => setStockEnabled(!stockEnabled)}
                   >
-                    <option value="true">Ativo</option>
-                    <option value="false">Desativado</option>
-                  </select>
-                </label>
-                <label className={styles.field}>
-                  <span className={styles.label}>Quantidade</span>
-                  <input
-                    className={styles.input}
-                    placeholder="0"
-                    value={stock}
-                    onChange={(event) => setStock(event.target.value)}
-                  />
-                </label>
+                    <span className={styles.toggleSlider} />
+                  </button>
+                </div>
               </div>
 
-              <label className={styles.field}>
-                <span className={styles.label}>Estoque baixo (alerta)</span>
-                <input
-                  className={styles.input}
-                  placeholder="5"
-                  value={lowStock}
-                  onChange={(event) => setLowStock(event.target.value)}
-                />
-              </label>
+              {stockEnabled && (
+                <>
+                  <label className={styles.field}>
+                    <span className={styles.label}>Quantidade</span>
+                    <input
+                      className={styles.input}
+                      placeholder="0"
+                      value={stock}
+                      onChange={(event) => setStock(event.target.value)}
+                    />
+                  </label>
+
+                  <div className={styles.field}>
+                    <div className={styles.fieldHeader}>
+                      <span className={styles.label}>Estoque baixo (alerta)</span>
+                      <button
+                        type="button"
+                        className={`${styles.toggleSwitch} ${
+                          lowStockAlertEnabled ? styles.toggleSwitchActive : ""
+                        }`}
+                        onClick={() => setLowStockAlertEnabled(!lowStockAlertEnabled)}
+                      >
+                        <span className={styles.toggleSlider} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {lowStockAlertEnabled && (
+                    <label className={styles.field}>
+                      <span className={styles.label}>Limite de estoque baixo</span>
+                      <input
+                        className={styles.input}
+                        placeholder="0"
+                        value={lowStock}
+                        onChange={(event) => setLowStock(event.target.value)}
+                      />
+                    </label>
+                  )}
+                </>
+              )}
             </div>
           </section>
 
@@ -702,7 +738,7 @@ export function ProductsDetails() {
                 </div>
               )}
 
-              {isEdit && variations.length > 0 && (
+              {variations.length > 0 && (
                 <div className={styles.variationsList}>
                   {variations.map((variation, index) => (
                     <div key={index} className={styles.variationFormCard}>

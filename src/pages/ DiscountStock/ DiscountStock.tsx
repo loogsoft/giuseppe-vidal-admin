@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "./ DiscountStock.module.css";
-import { FiChevronDown, FiClock, FiSearch, FiTag, FiTrendingDown } from "react-icons/fi";
+import { FiClock, FiFilter, FiSearch, FiTag, FiTrendingDown } from "react-icons/fi";
 import StatCard from "../../components/StatCard/StatCard";
+import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
+import { DiscountStockFilterModal } from "../../components/DiscountStockFilterModal";
+
+type StockLevel = "all" | "ok" | "low" | "critical";
+type SortOption = "alpha" | "priceAsc" | "priceDesc" | "stockAsc" | "stockDesc";
+
 type StockItem = {
   id: string;
   name: string;
@@ -9,7 +15,7 @@ type StockItem = {
   category: string;
   stock: number;
   unit: string;
-  price: number;  
+  price: number;
   level: "ok" | "low" | "critical";
 };
 
@@ -128,21 +134,55 @@ const STOCK_HISTORY: StockHistory[] = [
 export function DiscountStock() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
-  const [sortBy, setSortBy] = useState("alpha");
   const [view, setView] = useState<"stock" | "history">("stock");
   const [page, setPage] = useState(1);
-  const pageSize = 6;
+  const [pageSize, setPageSize] = useState(6);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [filters, setFilters] = useState<{
+    minPrice: string;
+    maxPrice: string;
+    minStock: string;
+    maxStock: string;
+    stockLevel: StockLevel;
+    sortBy: SortOption;
+  }>({
+    minPrice: "",
+    maxPrice: "",
+    minStock: "",
+    maxStock: "",
+    stockLevel: "all",
+    sortBy: "alpha",
+  });
   const totalItems = STOCK_ITEMS.length;
   const totalOut = 142;
 
-  const categories = useMemo(() => {
-    const unique = new Set(STOCK_ITEMS.map((item) => item.category));
-    return ["all", ...Array.from(unique).sort()];
+  const LISTPAG: { value: number }[] = useMemo(
+    () => [{ value: 6 }, { value: 12 }, { value: 24 }, { value: 48 }],
+    [],
+  );
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    STOCK_ITEMS.forEach((item) => {
+      counts[item.category] = (counts[item.category] || 0) + 1;
+    });
+    return counts;
   }, []);
+
+  const categories = useMemo(() => {
+    const unique = Array.from(new Set(STOCK_ITEMS.map((item) => item.category))).sort();
+    return [
+      { value: "all", label: `Todos ${STOCK_ITEMS.length}` },
+      ...unique.map((cat) => ({
+        value: cat,
+        label: cat,
+      })),
+    ];
+  }, [categoryCounts]);
 
   const filteredItems = useMemo(() => {
     const term = search.trim().toLowerCase();
-    const filtered = STOCK_ITEMS.filter((item) => {
+    let filtered = STOCK_ITEMS.filter((item) => {
       const matchesSearch = term
         ? `${item.name} ${item.sku} ${item.category}`
             .toLowerCase()
@@ -150,22 +190,40 @@ export function DiscountStock() {
         : true;
       const matchesCategory =
         category === "all" ? true : item.category === category;
-      return matchesSearch && matchesCategory;
+      
+      const matchesPrice = 
+        (!filters.minPrice || item.price >= Number(filters.minPrice)) &&
+        (!filters.maxPrice || item.price <= Number(filters.maxPrice));
+      
+      const matchesStock =
+        (!filters.minStock || item.stock >= Number(filters.minStock)) &&
+        (!filters.maxStock || item.stock <= Number(filters.maxStock));
+      
+      const matchesLevel = 
+        filters.stockLevel === "all" || item.level === filters.stockLevel;
+      
+      return matchesSearch && matchesCategory && matchesPrice && matchesStock && matchesLevel;
     });
 
     const sorted = [...filtered];
     sorted.sort((a, b) => {
-      if (sortBy === "priceAsc") {
+      if (filters.sortBy === "priceAsc") {
         return a.price - b.price;
       }
-      if (sortBy === "priceDesc") {
+      if (filters.sortBy === "priceDesc") {
         return b.price - a.price;
+      }
+      if (filters.sortBy === "stockAsc") {
+        return a.stock - b.stock;
+      }
+      if (filters.sortBy === "stockDesc") {
+        return b.stock - a.stock;
       }
       return a.name.localeCompare(b.name, "pt-BR");
     });
 
     return sorted;
-  }, [search, category, sortBy]);
+  }, [search, category, filters]);
 
   const filteredHistory = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -174,16 +232,18 @@ export function DiscountStock() {
     }
 
     return STOCK_HISTORY.filter((item) => {
-      const haystack = `${item.product} ${item.reason} ${item.owner}`.toLowerCase();
+      const haystack =
+        `${item.product} ${item.reason} ${item.owner}`.toLowerCase();
       return haystack.includes(term);
     });
   }, [search]);
 
   useEffect(() => {
     setPage(1);
-  }, [view, search, category, sortBy]);
+  }, [view, search, category, filters]);
 
-  const totalResults = view === "stock" ? filteredItems.length : filteredHistory.length;
+  const totalResults =
+    view === "stock" ? filteredItems.length : filteredHistory.length;
   const totalPages = Math.max(1, Math.ceil(totalResults / pageSize));
   const currentPage = Math.min(page, totalPages);
   const pagedStockItems = useMemo(() => {
@@ -236,74 +296,6 @@ export function DiscountStock() {
         />
       </section>
 
-      <section className={styles.toolbar}>
-        <div className={styles.search}>
-          <FiSearch />
-          <input
-            className={styles.searchInput}
-            placeholder={
-              view === "stock"
-                ? "Buscar produto, SKU ou categoria"
-                : "Buscar no historico"
-            }
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-          />
-        </div>
-        <div className={styles.toolbarActions}>
-          {view === "stock" ? (
-            <>
-              <label className={styles.selectWrapper}>
-                <select
-                  className={styles.select}
-                  value={category}
-                  onChange={(event) => setCategory(event.target.value)}
-                >
-                  {categories.map((item) => (
-                    <option key={item} value={item}>
-                      {item === "all" ? "Categoria" : item}
-                    </option>
-                  ))}
-                </select>
-                <FiChevronDown className={styles.selectIcon} />
-              </label>
-              <label className={styles.selectWrapper}>
-                <select
-                  className={styles.select}
-                  value={sortBy}
-                  onChange={(event) => setSortBy(event.target.value)}
-                >
-                  <option value="alpha">Ordem alfabetica</option>
-                  <option value="priceAsc">Menor preco</option>
-                  <option value="priceDesc">Maior preco</option>
-                </select>
-                <FiChevronDown className={styles.selectIcon} />
-              </label>
-            </>
-          ) : (
-            <>
-              <label className={styles.selectWrapper}>
-                <select className={styles.select} defaultValue="period">
-                  <option value="period">Periodo</option>
-                  <option value="7">Ultimos 7 dias</option>
-                  <option value="30">Ultimos 30 dias</option>
-                </select>
-                <FiChevronDown className={styles.selectIcon} />
-              </label>
-              <label className={styles.selectWrapper}>
-                <select className={styles.select} defaultValue="reason">
-                  <option value="reason">Motivo</option>
-                  <option value="Venda">Venda</option>
-                  <option value="Avaria">Avaria</option>
-                  <option value="Consumo">Consumo</option>
-                </select>
-                <FiChevronDown className={styles.selectIcon} />
-              </label>
-            </>
-          )}
-        </div>
-      </section>
-
       <section className={styles.tabs}>
         <button
           className={`${styles.tab} ${view === "stock" ? styles.tabActive : ""}`}
@@ -323,6 +315,53 @@ export function DiscountStock() {
 
       {view === "stock" ? (
         <section className={styles.tablePanel}>
+          <div className={styles.filters}>
+            <div style={{display:"flex", gap:"10px"}}>
+              <div className={styles.search}>
+                <FiSearch className={styles.searchIcon} />
+                <input
+                  className={styles.searchInput}
+                  placeholder="Buscar produto, SKU ou categoria..."
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              </div>
+              <CustomSelect
+                options={LISTPAG.map((c) => ({ value: String(c.value), label: String(c.value) }))}
+                value={String(pageSize)}
+                onChange={(value) => {
+                  setPageSize(Number(value));
+                  setPage(1);
+                }}
+              />
+            </div>
+            <div className={styles.filterActions}>
+              <CustomSelect
+                options={categories}
+                value={category}
+                onChange={(value) => setCategory(value)}
+              />
+              <div style={{ position: "relative" }}>
+                <button
+                  className={styles.filterBtn}
+                  type="button"
+                  onClick={() => setIsFilterModalOpen(true)}
+                >
+                  <FiFilter />
+                  Filtros
+                </button>
+                <DiscountStockFilterModal
+                  isOpen={isFilterModalOpen}
+                  onClose={() => setIsFilterModalOpen(false)}
+                  onApply={(newFilters) => {
+                    setFilters(newFilters);
+                    setPage(1);
+                  }}
+                  initialFilters={filters}
+                />
+              </div>
+            </div>
+          </div>
           <div className={styles.table}>
             <div className={styles.tableHeader}>
               <span>Produto</span>
@@ -404,8 +443,52 @@ export function DiscountStock() {
         </section>
       ) : (
         <section className={styles.tablePanel}>
+          <div className={styles.filters}>
+            <div style={{display:"flex", gap:"10px"}}>
+              <div className={styles.search}>
+                <FiSearch className={styles.searchIcon} />
+                <input
+                  className={styles.searchInput}
+                  placeholder="Buscar no historico..."
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+              </div>
+              <CustomSelect
+                options={LISTPAG.map((c) => ({ value: String(c.value), label: String(c.value) }))}
+                value={String(pageSize)}
+                onChange={(value) => {
+                  setPageSize(Number(value));
+                  setPage(1);
+                }}
+              />
+            </div>
+            <div className={styles.filterActions}>
+              <CustomSelect
+                options={[
+                  { value: "period", label: "Periodo" },
+                  { value: "7", label: "Últimos 7 dias" },
+                  { value: "30", label: "Últimos 30 dias" },
+                ]}
+                value="period"
+                onChange={() => {}}
+              />
+              <CustomSelect
+                options={[
+                  { value: "reason", label: "Motivo" },
+                  { value: "Venda", label: "Venda" },
+                  { value: "Avaria", label: "Avaria" },
+                  { value: "Consumo", label: "Consumo" },
+                ]}
+                value="reason"
+                onChange={() => {}}
+              />
+            </div>
+          </div>
           <div className={styles.table}>
-            <div className={`${styles.tableHeader} ${styles.tableHeaderHistory}`}>
+            <div
+              className={`${styles.tableHeader} ${styles.tableHeaderHistory}`}
+            >
               <span>Data/Hora</span>
               <span>Produto</span>
               <span>Qtd. retirada</span>

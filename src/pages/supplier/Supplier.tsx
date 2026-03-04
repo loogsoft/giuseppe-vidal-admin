@@ -1,24 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  FiChevronLeft,
-  FiChevronRight,
+  FiFilter,
   FiGrid,
   FiPackage,
-  FiPlus,
   FiSearch,
   FiUserCheck,
   FiUsers,
 } from "react-icons/fi";
 import { Plus } from "lucide-react";
-import ProductCard from "../../components/ProductCard";
+import EntityCard from "../../components/EntityCard";
 import { SkeletonCard } from "../../components/SkeletonCard";
+import { FilterModal } from "../../components/FilterModal";
 import styles from "./Supplier.module.css";
 import { SupplierService } from "../../service/Supplier.service";
 import type { SupplierResponseDto } from "../../dtos/response/supplier-response.dto";
-import StatCard from "../../components/StatCard/StatCard";
+import StatCard from "../../components/StatCard/StatCard";import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
+import type { CategoryKey } from "../../types/Product-type";
 
 type SupplierStatus = "active" | "inactive";
+type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
 
 type SupplierCardData = {
   id: string;
@@ -33,7 +34,7 @@ type SupplierCardData = {
   openDiscountStock: number;
 };
 
-const AVATAR_COLORS = ["#fff1d6", "#e7e7e7", "#ffe5e5", "#fff0d9", "#e9f1ff", "#eee3ff"];
+const AVATAR_COLORS = ["rgba(255, 200, 61, 0.2)"];
 
 const getInitials = (name: string) => {
   const parts = name
@@ -90,7 +91,7 @@ const mapSupplierCard = (
 };
 
 export function Supplier() {
-  const [activeCat] = useState("all");
+  const [activeCat, setActiveCat] = useState<CategoryKey>("all");
   const [page, setPage] = useState(1);
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
@@ -98,6 +99,46 @@ export function Supplier() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [filters, setFilters] = useState<{
+    minPrice: string;
+    maxPrice: string;
+    category: CategoryKey;
+    sortBy: SortOption;
+  }>({
+    minPrice: "",
+    maxPrice: "",
+    category: "all" as CategoryKey,
+    sortBy: null,
+  });
+  
+  const counts = useMemo(() => {
+    const categories = new Set(suppliers.map((s) => s.category));
+    const countBy = (category: string) =>
+      suppliers.filter((s) => s.category === category).length;
+
+    const result: Record<string, number> = { all: suppliers.length };
+    categories.forEach((cat) => {
+      result[cat] = countBy(cat);
+    });
+    return result;
+  }, [suppliers]);
+
+  const CATEGORIES = useMemo(() => {
+    const uniqueCategories = Array.from(new Set(suppliers.map((s) => s.category)));
+    return [
+      { key: "all" as CategoryKey, label: `Todos ${counts.all}` },
+      ...uniqueCategories.map((cat) => ({ key: cat as CategoryKey, label: cat })),
+    ];
+  }, [suppliers, counts]);
+
+  const LISTPAG: { value: number }[] = useMemo(
+    () => [{ value: 12 }, { value: 24 }, { value: 48 }, { value: 100 }],
+    [],
+  );
+
+  const [pageSize, setPageSize] = useState(12);
+
   const filtered = useMemo(() => {
     let current = suppliers;
     if (activeCat !== "all") {
@@ -135,9 +176,6 @@ export function Supplier() {
   const handleDelete = async (id: string) => {
     if (deletingId) return;
 
-    const confirmed = window.confirm("Deseja excluir este fornecedor?");
-    if (!confirmed) return;
-
     try {
       setDeletingId(id);
       await SupplierService.remove(id);
@@ -150,7 +188,6 @@ export function Supplier() {
     }
   };
 
-  const pageSize = 6;
   const total = filtered.length;
   const maxPage = Math.max(1, Math.ceil(total / pageSize));
   const currentPage = Math.min(page, maxPage);
@@ -158,7 +195,9 @@ export function Supplier() {
   const paginated = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
     return filtered.slice(start, start + pageSize);
-  }, [filtered, currentPage]);
+  }, [filtered, currentPage, pageSize]);
+
+  const pages = Array.from({ length: maxPage }, (_, index) => index + 1);
 
   const totalSuppliers = suppliers.length;
   const activeSuppliers = suppliers.filter((s) => s.status === "active").length;
@@ -216,18 +255,60 @@ export function Supplier() {
 
       <div className={styles.gridContainer}>
         <div className={styles.filters}>
-          <div className={styles.search}>
-            <FiSearch className={styles.searchIcon} />
-            <input
-              className={styles.searchInput}
-              type="text"
-              placeholder="Buscar fornecedores..."
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
+          <div style={{display:"flex", gap:"10px"}}>
+            <div className={styles.search}>
+              <FiSearch className={styles.searchIcon} />
+              <input
+                className={styles.searchInput}
+                type="text"
+                placeholder="Buscar fornecedores..."
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setPage(1);
+                }}
+              />
+            </div>
+            <CustomSelect
+              options={LISTPAG.map((c) => ({ value: String(c.value), label: String(c.value) }))}
+              value={String(pageSize)}
+              onChange={(value) => {
+                setPageSize(Number(value));
                 setPage(1);
               }}
             />
+          </div>
+
+          <div className={styles.filterActions}>
+            <CustomSelect
+              options={CATEGORIES.map((c) => ({ value: c.key, label: c.label }))}
+              value={activeCat}
+              onChange={(value) => {
+                setActiveCat(value as CategoryKey);
+                setPage(1);
+              }}
+            />
+            <div style={{ position: "relative" }}>
+              <button
+                className={styles.filterBtn}
+                type="button"
+                onClick={() => setIsFilterModalOpen(true)}
+              >
+                <FiFilter />
+                Filtros
+              </button>
+              <FilterModal
+                isOpen={isFilterModalOpen}
+                onClose={() => setIsFilterModalOpen(false)}
+                onApply={(newFilters) => {
+                  setFilters(newFilters);
+                  setActiveCat(newFilters.category);
+                  setPage(1);
+                }}
+                categories={CATEGORIES}
+                initialFilters={filters}
+              />
+            </div>
           </div>
         </div>
 
@@ -242,7 +323,7 @@ export function Supplier() {
         ) : (
           <div className={styles.grid}>
             {paginated.map((supplier) => (
-              <ProductCard
+              <EntityCard
                 key={supplier.id}
                 type="supplier"
                 id={supplier.id}
@@ -260,43 +341,50 @@ export function Supplier() {
             ))}
           </div>
         )}
-      </div>
 
-      <div className={styles.bottom}>
-        <div className={styles.counter}>
-          Exibindo {paginated.length} de {total} fornecedores cadastrados
+        <div className={styles.bottom}>
+          <div className={styles.counter}>
+            Mostrando {paginated.length} de {total} fornecedores
+          </div>
+
+          <div className={styles.pagination}>
+            <button
+              className={`${styles.pageBtn} ${
+                currentPage === 1 ? styles.pageBtnDisabled : ""
+              }`}
+              type="button"
+              onClick={() => setPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              aria-label="Pagina anterior"
+            >
+              ‹
+            </button>
+            {pages.map((p) => (
+              <button
+                key={p}
+                className={`${styles.pageBtn} ${
+                  p === currentPage ? styles.pageBtnActive : ""
+                }`}
+                type="button"
+                onClick={() => setPage(p)}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              className={`${styles.pageBtn} ${
+                currentPage === maxPage ? styles.pageBtnDisabled : ""
+              }`}
+              type="button"
+              onClick={() => setPage(Math.min(maxPage, currentPage + 1))}
+              disabled={currentPage === maxPage}
+              aria-label="Proxima pagina"
+            >
+              ›
+            </button>
+          </div>
         </div>
-
-        <div className={styles.pager}>
-          <button
-            type="button"
-            className={styles.pagerBtn}
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            aria-label="Anterior"
-            disabled={currentPage <= 1}
-          >
-            <FiChevronLeft />
-          </button>
-          <button
-            type="button"
-            className={styles.pagerBtn}
-            onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
-            aria-label="Proximo"
-            disabled={currentPage >= maxPage}
-          >
-            <FiChevronRight />
-          </button>
-        </div>
       </div>
-
-      <button
-        className={styles.fab}
-        type="button"
-        aria-label="Adicionar fornecedor"
-        onClick={() => navigate("/supplier-details")}
-      >
-        <FiPlus />
-      </button>
     </div>
   );
 }

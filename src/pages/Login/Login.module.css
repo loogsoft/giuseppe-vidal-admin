@@ -153,6 +153,16 @@
   padding: 0 14px;
   background: #f8fafc;
   border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.inputWrap:hover {
+  border-color: #000;
+}
+
+.inputWrap:focus-within {
+  border-color: #FFC83D;
+  box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
 }
 
 .inputIcon {
@@ -294,6 +304,12 @@
   justify-content: center;
   gap: 10px;
   box-shadow: 0 12px 22px rgba(255, 200, 61, 0.25);
+  transition: all 0.2s ease;
+}
+
+.submit:hover {
+  transform: scale(1.05);
+  box-shadow: 0 16px 28px rgba(255, 200, 61, 0.35);
 }
 
 .submitIcon {
@@ -347,11 +363,16 @@
   font-weight: 600;
   color: #111827;
   outline: none;
+  transition: all 0.2s ease;
+}
+
+.codeInput:hover {
+  border-color: #000;
 }
 
 .codeInput:focus {
-  border-color:   #FFC83D;
-  box-shadow: 0 0 0 2px rgba(255, 200, 61 , 0.35);
+  border-color: #FFC83D;
+  box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
 }
 
 .verifyNote {
@@ -375,6 +396,12 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.verifyButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 16px 28px rgba(255, 200, 61, 0.35);
 }
 
 .resend {
@@ -386,6 +413,11 @@
   font-size: 11px;
   cursor: pointer;
   opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.resend:hover {
+  opacity: 1;
 }
 
 .resend:hover {

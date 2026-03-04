@@ -55,12 +55,23 @@
   font-weight: 600;
   font-size: 12px;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.periodTab:hover:not(.periodTabActive) {
+  background: var(--surface-muted);
+  color: var(--text-primary);
 }
 
 .periodTabActive {
   background: var(--highlight-primary);
   color: #fff;
   box-shadow: 0 6px 14px rgba(242, 182, 50, 0.35);
+}
+
+.periodTabActive:hover {
+  background: var(--highlight-primary);
+  color: #fff;
 }
 
 .metrics {
@@ -82,6 +93,13 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.metricCard:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .metricHeader {

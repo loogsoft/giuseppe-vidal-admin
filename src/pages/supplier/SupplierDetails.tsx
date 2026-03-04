@@ -4,6 +4,7 @@ import styles from "./SupplierDetails.module.css";
 import { SupplierService } from "../../service/Supplier.service";
 import type { SupplierRequestDto } from "../../dtos/request/supplier-request.dto";
 import { Save } from "lucide-react";
+import { ButtonBack } from "../../components/ButtonBack/ButtonBack";
 
 export function SupplierDetails() {
 	const navigate = useNavigate();
@@ -115,7 +116,7 @@ export function SupplierDetails() {
 		}
 	};
 
-	const actionLabel = isEdit ? "Salvar alteracoes" : "Criar fornecedor";
+	const actionLabel = isEdit ? "Salvar alterações" : "Criar fornecedor";
 	const loadingLabel = isEdit ? "Salvando..." : "Criando...";
 
 	return (
@@ -129,17 +130,19 @@ export function SupplierDetails() {
 			/>
 
 			<div className={styles.top}>
-				<div>
-					<h1 className={styles.title}>
-						{isEdit ? "Editar fornecedor" : "Cadastro de novo fornecedor"}
-					</h1>
-					<p className={styles.subtitle}>
-						{isEdit
-							? "Atualize as informacoes principais do fornecedor."
-							: "Preencha as informacoes principais do fornecedor."}
-					</p>
+				<div style={{display: "flex", alignItems: "center"}}>
+					<ButtonBack />
+					<div>
+						<h1 className={styles.title}>
+							{isEdit ? "Editar fornecedor" : "Cadastro de novo fornecedor"}
+						</h1>
+						<p className={styles.subtitle}>
+							{isEdit
+								? "Atualize as informações principais do fornecedor."
+								: "Preencha as informações principais do fornecedor."}
+						</p>
+					</div>
 				</div>
-
 				<div className={styles.topActions}>
 					<button
 						className={styles.discard}
@@ -175,7 +178,7 @@ export function SupplierDetails() {
 						<div className={styles.logoHint}>PNG ou JPG (max. 5MB)</div>
 					</button>
 					<p className={styles.logoTip}>
-						Dica: use imagens com boa resolucao para identificar a marca.
+						Dica: use imagens com boa resolução para identificar a marca.
 					</p>
 				</aside>
 
@@ -183,7 +186,7 @@ export function SupplierDetails() {
 					<section className={styles.panel}>
 						<div className={styles.panelHeader}>
 							<span className={styles.panelNumber}>1</span>
-							<span className={styles.panelTitle}>Informacoes da empresa</span>
+							<span className={styles.panelTitle}>Informações da empresa</span>
 						</div>
 
 						<div className={styles.form}>
@@ -199,10 +202,10 @@ export function SupplierDetails() {
 
 							<div className={styles.row2}>
 								<label className={styles.field}>
-									<span className={styles.label}>Razao social</span>
+									<span className={styles.label}>Razão social</span>
 									<input
 										className={styles.input}
-										placeholder="Ex: Pinha Comercio de Alimentos"
+										placeholder="Ex: Pinha Comércio de Alimentos"
 										value={corporateName}
 										onChange={(event) => setCorporateName(event.target.value)}
 									/>
@@ -223,7 +226,7 @@ export function SupplierDetails() {
 					<section className={styles.panel}>
 						<div className={styles.panelHeader}>
 							<span className={styles.panelNumber}>2</span>
-							<span className={styles.panelTitle}>Contato e endereco</span>
+							<span className={styles.panelTitle}>Contato e endereço</span>
 						</div>
 
 						<div className={styles.form}>
@@ -274,7 +277,7 @@ export function SupplierDetails() {
 									<span className={styles.label}>Cidade</span>
 									<input
 										className={styles.input}
-										placeholder="Ex: Sao Paulo"
+										placeholder="Ex: São Paulo"
 										value={city}
 										onChange={(event) => setCity(event.target.value)}
 									/>
@@ -287,10 +290,10 @@ export function SupplierDetails() {
 										onChange={(event) => setState(event.target.value)}
 									>
 										<option value="">Selecione o estado</option>
-										<option value="SP">Sao Paulo</option>
+										<option value="SP">São Paulo</option>
 										<option value="RJ">Rio de Janeiro</option>
 										<option value="MG">Minas Gerais</option>
-										<option value="PR">Parana</option>
+										<option value="PR">Paraná</option>
 									</select>
 								</label>
 							</div>
@@ -343,7 +346,7 @@ export function SupplierDetails() {
 							</div>
 
 							<label className={styles.field}>
-								<span className={styles.label}>Inscricao estadual</span>
+							<span className={styles.label}>Inscrição estadual</span>
 								<input
 									className={styles.input}
 									placeholder="000.000.000.000"

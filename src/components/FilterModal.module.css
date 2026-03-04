@@ -122,6 +122,10 @@
   color: var(--text-muted);
 }
 
+.input:hover {
+  border-color: #000;
+}
+
 .input:focus {
   border-color: #FFC83D;
   background: var(--hover-bg);
@@ -138,6 +142,10 @@
   outline: none;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.select:hover {
+  border-color: #000;
 }
 
 .select:focus {
@@ -167,6 +175,7 @@
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .radioLabel:hover {
@@ -174,10 +183,37 @@
 }
 
 .radio {
-  width: 18px;
-  height: 18px;
-  accent-color: #FFC83D;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border-default);
+  border-radius: 50%;
   cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+.radio:hover {
+  border-color: #000;
+}
+
+.radio:checked {
+  border-color: #FFC83D;
+  background: #FFC83D;
+}
+
+.radio:checked::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ffffff;
 }
 
 .footer {

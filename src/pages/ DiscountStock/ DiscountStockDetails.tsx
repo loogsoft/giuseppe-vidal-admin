@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import styles from "./ DiscountStockDetails.module.css";
 import { useNavigate } from "react-router-dom";
 import { Printer, X, ChevronDown } from "lucide-react";
+import { ButtonBack } from "../../components/ButtonBack/ButtonBack";
 
 type DiscountStockItem = {
   id: string;
@@ -90,12 +91,12 @@ export default function DiscountStockDetails() {
           status: "done",
         },
         {
-          label: "SEPARACAO NO ESTOQUE",
+          label: "SEPARAÇÃO NO ESTOQUE",
           timeLabel: "Hoje às 19:26",
           status: "current",
         },
         {
-          label: "CONFERENCIA FINALIZADA",
+          label: "CONFERÊNCIA FINALIZADA",
           timeLabel: "Aguardando...",
           status: "pending",
         },
@@ -117,13 +118,7 @@ export default function DiscountStockDetails() {
     <div className={styles.page}>
       <header className={styles.topbar}>
         <div className={styles.topbarLeft}>
-          <button
-            className={styles.iconBtn}
-            aria-label="Voltar"
-            onClick={() => navigate(-1)}
-          >
-            ←
-          </button>
+          <ButtonBack />
 
           <div className={styles.topbarTitleWrap}>
             <div className={styles.titleRow}>

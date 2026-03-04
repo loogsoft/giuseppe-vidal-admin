@@ -178,10 +178,14 @@
   color: var(--text-muted);
 }
 
+.input:hover {
+  border-color: #000;
+}
+
 .input:focus {
   outline: none;
-  border-color: #f2b632;
-  box-shadow: 0 0 0 3px rgba(242, 182, 50, 0.1);
+  border-color: #FFC83D;
+  box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
 }
 
 /* Password Fields */

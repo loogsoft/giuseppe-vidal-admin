@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   FiGrid,
@@ -8,14 +7,6 @@ import {
   FiSettings,
 } from "react-icons/fi";
 import styles from "./Sidebar.module.css";
-import {
-  ChevronDown,
-  ClipboardList,
-  FileBarChart2Icon,
-  PackageCheck,
-  PackageSearch,
-  PackageX,
-} from "lucide-react";
 import { IoExitOutline } from "react-icons/io5";
 import { useAuth } from "../../contexts/useAuth";
 import { useTheme } from "../../contexts/useTheme";
@@ -26,30 +17,6 @@ export function Sidebar() {
   const { logout, user } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const [reportsOpen, setReportsOpen] = useState(false);
-
-  const reportItems = [
-    {
-      label: "Controle de estoque",
-      to: "/relatorios",
-      icon: <PackageSearch size={25} />,
-    },
-    {
-      label: "Entradas",
-      to: "/relatorios",
-      icon: <PackageCheck size={25} />,
-    },
-    {
-      label: "Saidas",
-      to: "/relatorios",
-      icon: <PackageX size={25} />,
-    },
-    {
-      label: "Produtos",
-      to: "/relatorios",
-      icon: <ClipboardList size={25} />,
-    },
-  ];
 
   function handleLogout() {
     // 1️⃣ Limpa token e estado
@@ -59,7 +26,7 @@ export function Sidebar() {
     navigate("/login");
   }
 
-  const displayName = user?.name || user?.email?.split("@")[0] || "Usuario";
+  const displayName = user?.name || user?.email?.split("@")[0] || "Usuário";
   
   // Trunca o email de forma inteligente
   const truncateEmail = (email: string) => {
@@ -142,7 +109,7 @@ export function Sidebar() {
             <span>Fornecedores</span>
           </NavLink>
 
-          <span className={styles.sectionTitle}>Relatorios</span>
+          {/* <span className={styles.sectionTitle}>Relatorios</span>
           <button
             type="button"
             className={styles.submenuToggle}
@@ -176,7 +143,7 @@ export function Sidebar() {
                 <span>{item.label}</span>
               </NavLink>
             ))}
-          </div>
+          </div> */}
         </nav>
       </div>
       <div className={styles.footer}>

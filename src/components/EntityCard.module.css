@@ -1,9 +1,11 @@
 .card {
+  position: relative;
   border-radius: 25px;
   overflow: hidden;
   background: var(--surface);
   box-shadow: var(--shadow-1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
 }
 
 .card:hover {
@@ -21,7 +23,7 @@
   background: var(--surface);
 }
 
-.productCard {
+.EntityCard {
   background: var(--surface);
 }
 
@@ -57,6 +59,7 @@
   height: 100px;
   margin: 0;
   border-radius: 16px;
+  background: rgba(255, 200, 61, 0.2) !important;
 }
 
 .productAvatar {
@@ -81,8 +84,8 @@
 
 .image {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: 80%;
+  object-fit: contain;
   display: block;
   border-radius: 16px;
 
@@ -111,8 +114,8 @@
 }
 
 .iconBtn {
-  width: 34px;
-  height: 34px;
+  width: 40px;
+  height: 40px;
   border-radius: 10px;
   border: 1px solid var(--border-default);
   background: var(--surface);
@@ -121,6 +124,45 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.iconBtn:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+  transform: scale(1.05);
+}
+.iconBtnEdit {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 200, 61, 0.15);
+  color: var(--highlight-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 200, 61, 0.2);
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.card:hover .iconBtnEdit {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.card:hover .iconBtnEdit:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(255, 200, 61, 0.3);
 }
 
 .outOfStock {
@@ -142,9 +184,9 @@
   left: 10px;
   color: red;
   border: 1px solid rgba(245, 158, 11, 0.22);
-  padding: 4px 7px;
+  padding: 10px 17px;
   border-radius: 999px;
-  font-size: 7px;
+  font-size: 8px;
   font-weight: 600;
   letter-spacing: 0.08em;
   margin-top: 12px;
@@ -175,9 +217,9 @@
 }
 
 .statusActive {
-  background: rgba(34, 197, 94, 0.12);
-  color: #22c55e;
-  border-color: rgba(34, 197, 94, 0.3);
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.35);
 }
 
 .statusInactive {
@@ -231,6 +273,7 @@
   line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -261,8 +304,103 @@
   gap: 8px;
 }
 
+.promoItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.originalPrice {
+  text-decoration: line-through;
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.promoPrice {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.discount {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 .metaIcon {
   color: var(--highlight-primary);
   font-size: 14px;
+}
+
+.imageNavBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 2;
+}
+
+.imageNavBtnLeft {
+  left: 10px;
+}
+
+.imageNavBtnRight {
+  right: 10px;
+}
+
+.card:hover .imageNavBtn {
+  opacity: 1;
+}
+
+.imageNavBtn:hover {
+  background: rgba(255, 200, 61, 0.95);
+  color: #fff;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.imageIndicators {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 4px;
+  z-index: 2;
+}
+
+.imageIndicator {
+  width: 12px;
+  height: 6px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.8);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.imageIndicatorActive {
+  background: rgba(255, 200, 61, 0.95);
+  width: 18px;
+  border-radius: 5px;
+  box-shadow: 0 2px 12px rgba(255, 200, 61, 0.5);
+  border: 1px solid rgba(255, 200, 61, 0.3);
 }
 

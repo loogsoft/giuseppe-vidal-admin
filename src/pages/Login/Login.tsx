@@ -109,12 +109,6 @@ export default function Login({
       }, 0);
     }
   }, [step]);
-  useEffect(() => {
-    if (step === "verify" && code.every((digit) => digit !== "") && !loading) {
-      const submitEvent = { preventDefault: () => {} } as FormEvent;
-      handleSubmit(submitEvent);
-    }
-  }, [code, step, loading, handleSubmit]);
 
   useEffect(() => {
     HealthService.health();
@@ -275,7 +269,7 @@ export default function Login({
                   Verificacao de Seguranca
                 </div>
                 <div className={styles.verifySub}>
-                  Enviamos um codigo de 6 digitos para o seu e-mail.
+                  Enviamos um código de 6 dígitos para o seu e-mail.
                 </div>
                 <div className={styles.codeRow}>
                   {code.map((digit, index) => (
@@ -290,12 +284,12 @@ export default function Login({
                       onKeyDown={(e) => handleCodeKeyDown(index, e)}
                       inputMode="numeric"
                       maxLength={1}
-                      aria-label={`Codigo ${index + 1}`}
+                      aria-label={`Código ${index + 1}`}
                     />
                   ))}
                 </div>
                 <div className={styles.verifyNote}>
-                  Por favor, insira o codigo para continuar.
+                  Por favor, insira o código para continuar.
                 </div>
                 <button className={styles.verifyButton} type="submit">
                   {loading ? (
@@ -305,7 +299,7 @@ export default function Login({
                       className={styles.loading}
                     />
                   ) : (
-                    "VERIFICAR CODIGO"
+                    "VERIFICAR CÓDIGO"
                   )}
                 </button>
                 <button
@@ -316,10 +310,10 @@ export default function Login({
                 >
                   {resendCooldown > 0
                     ? `Reenviar em ${resendCooldown}s`
-                    : "Reenviar codigo"}
+                    : "Reenviar código"}
                 </button>
                 <div className={styles.helpLink}>
-                  Nao recebeu o codigo?{" "}
+                  Não recebeu o código?{" "}
                   <a
                     className={styles.supportLink}
                     href={supportUrl}

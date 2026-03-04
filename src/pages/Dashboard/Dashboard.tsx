@@ -1,4 +1,4 @@
-import { useMemo, useState, type JSX } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import styles from "./Dashboard.module.css";
 import {
   ResponsiveContainer,
@@ -9,9 +9,17 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { FiAward, FiBox, FiCalendar, FiDollarSign, FiEye, FiShoppingCart } from "react-icons/fi";
+import {
+  FiAward,
+  FiBox,
+  FiCalendar,
+  FiDollarSign,
+  FiEye,
+  FiShoppingCart,
+} from "react-icons/fi";
 import { useTheme } from "../../contexts/useTheme";
 import StatCard from "../../components/StatCard/StatCard";
+import { ProductService } from "../../service/Product.service";
 
 type MetricCard = {
   label: string;
@@ -40,16 +48,16 @@ type ChartPoint = {
   value: number;
 };
 
-type PeriodData = {
-  metrics: MetricCard[];
-  chart: ChartPoint[];
-  recent: RecentSale[];
-};
-
 type CustomTooltipProps = {
   active?: boolean;
   payload?: Array<{ value?: number | string }>;
   label?: string;
+};
+
+type PeriodData = {
+  metrics: MetricCard[];
+  chart: ChartPoint[];
+  recent: RecentSale[];
 };
 
 const DASHBOARD_MOCK: Record<Period, PeriodData> = {
@@ -68,13 +76,6 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         badge: "+1.4%",
         icon: "money",
         badgeTone: "success",
-      },
-      {
-        label: "ITENS EM ESTOQUE",
-        value: "12.450",
-        badge: "Normal",
-        icon: "ticket",
-        badgeTone: "neutral",
       },
     ],
     chart: [
@@ -145,13 +146,6 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         icon: "money",
         badgeTone: "success",
       },
-      {
-        label: "ITENS EM ESTOQUE",
-        value: "12.450",
-        badge: "Normal",
-        icon: "ticket",
-        badgeTone: "neutral",
-      },
     ],
     chart: [
       { name: "SEG", value: 48 },
@@ -220,13 +214,6 @@ const DASHBOARD_MOCK: Record<Period, PeriodData> = {
         badge: "+4.1%",
         icon: "money",
         badgeTone: "success",
-      },
-      {
-        label: "ITENS EM ESTOQUE",
-        value: "12.450",
-        badge: "Normal",
-        icon: "ticket",
-        badgeTone: "neutral",
       },
     ],
     chart: [
@@ -301,6 +288,7 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 export function Dashboard() {
   const [period, setPeriod] = useState<Period>("week");
   const { theme } = useTheme();
+  const [stockiten, setStockIten] = useState(0);
 
   const periodData = useMemo(() => DASHBOARD_MOCK[period], [period]);
   const chartColors = {
@@ -309,6 +297,16 @@ export function Dashboard() {
     muted: "var(--text-muted)",
     grid: "var(--border-default)",
   };
+
+  useEffect(() => {
+    try {
+      const totalProduct: any = async () => {
+        const data = await ProductService.findAll();
+        setStockIten(data.length);
+      };
+      totalProduct();
+    } catch (error) {}
+  }, []);
 
   return (
     <div className={styles.page}>
@@ -359,12 +357,19 @@ export function Dashboard() {
             key={m.label}
             label={m.label}
             value={m.value}
-            badge={m.badge}
+            // badge={m.badge}
             badgeTone={m.badgeTone}
             icon={METRIC_ICONS[m.icon]}
             sub={m.sub}
           />
         ))}
+        <StatCard
+          key={1}
+          label={"ITENS EM ESTOQUE"}
+          icon={METRIC_ICONS["ticket"]}
+          value={stockiten.toString()}
+          badgeTone={"success"}
+        />
       </div>
 
       <div className={styles.panel}>
@@ -393,8 +398,16 @@ export function Dashboard() {
             >
               <defs>
                 <linearGradient id="barFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={chartColors.primary} stopOpacity={0.9} />
-                  <stop offset="100%" stopColor={chartColors.secondary} stopOpacity={0.9} />
+                  <stop
+                    offset="0%"
+                    stopColor={chartColors.primary}
+                    stopOpacity={0.9}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor={chartColors.secondary}
+                    stopOpacity={0.9}
+                  />
                 </linearGradient>
               </defs>
               <CartesianGrid stroke={chartColors.grid} vertical={false} />
@@ -465,7 +478,9 @@ export function Dashboard() {
               <div>
                 <span
                   className={
-                    r.status === "CONCLUIDO" ? styles.statusOk : styles.statusBad
+                    r.status === "CONCLUIDO"
+                      ? styles.statusOk
+                      : styles.statusBad
                   }
                 >
                   {r.status}
@@ -473,7 +488,11 @@ export function Dashboard() {
               </div>
 
               <div className={styles.actionsCell}>
-                <button className={styles.eyeBtn} type="button" aria-label="Ver">
+                <button
+                  className={styles.eyeBtn}
+                  type="button"
+                  aria-label="Ver"
+                >
                   <FiEye />
                 </button>
               </div>
@@ -485,7 +504,10 @@ export function Dashboard() {
           <div className={styles.muted}>Mostrando 4 de 432 baixas</div>
 
           <div className={styles.pagination}>
-            <button className={`${styles.pageBtn} ${styles.pageBtnActive}`} type="button">
+            <button
+              className={`${styles.pageBtn} ${styles.pageBtnActive}`}
+              type="button"
+            >
               1
             </button>
             <button className={styles.pageBtn} type="button">

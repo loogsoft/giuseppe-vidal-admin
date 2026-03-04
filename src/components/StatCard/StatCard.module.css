@@ -11,6 +11,13 @@
   align-items: flex-start;
   justify-content: flex-start;
   width: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.card:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .header {

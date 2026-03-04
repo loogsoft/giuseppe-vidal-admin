@@ -36,10 +36,13 @@
   justify-content: center;
   cursor: pointer;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
 }
 
 .iconButton:hover {
   background: var(--hover-bg);
+  transform: scale(1.05);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
 }
 
 .avatar {

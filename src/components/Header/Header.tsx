@@ -40,7 +40,7 @@ export function Header({ title }: HeaderProps) {
           {theme === "dark" ? <FiSun /> : <FiMoon />}
         </button>
 
-        <button className={styles.iconButton} type="button" aria-label="Notificacoes">
+        <button className={styles.iconButton} type="button" aria-label="Notificações">
           <FiBell />
         </button>
 

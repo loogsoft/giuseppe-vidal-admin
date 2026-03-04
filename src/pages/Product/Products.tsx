@@ -6,10 +6,9 @@ import {
   FiDollarSign,
   FiFilter,
   FiGrid,
-  FiPlus,
   FiSearch,
 } from "react-icons/fi";
-import ProductCard from "../../components/ProductCard";
+import EntityCard from "../../components/EntityCard";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { FilterModal } from "../../components/FilterModal";
 import { Plus } from "lucide-react";
@@ -19,6 +18,7 @@ import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
 import { useNavigate } from "react-router-dom";
 import StatCard from "../../components/StatCard/StatCard";
+import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 
 type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
 
@@ -28,6 +28,8 @@ export function Products() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
   const navigate = useNavigate();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -108,13 +110,9 @@ export function Products() {
 
     // Ordenação
     if (filters.sortBy === "price-asc") {
-      current = [...current].sort(
-        (a, b) => Number(a.price) - Number(b.price),
-      );
+      current = [...current].sort((a, b) => Number(a.price) - Number(b.price));
     } else if (filters.sortBy === "price-desc") {
-      current = [...current].sort(
-        (a, b) => Number(b.price) - Number(a.price),
-      );
+      current = [...current].sort((a, b) => Number(b.price) - Number(a.price));
     } else if (filters.sortBy === "name-asc") {
       current = [...current].sort((a, b) => a.name.localeCompare(b.name));
     }
@@ -123,6 +121,15 @@ export function Products() {
   }, [activeCat, products, query, filters]);
 
   const total = filtered.length;
+  const maxPage = Math.max(1, Math.ceil(total / pageSize));
+  const currentPage = Math.min(page, maxPage);
+
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
+
+  const pages = Array.from({ length: maxPage }, (_, index) => index + 1);
 
   const counts = useMemo(() => {
     const countBy = (category: ProductCategoryEnum) =>
@@ -168,12 +175,18 @@ export function Products() {
     [counts],
   );
 
+  const LISTPAG: { value: number }[] = useMemo(
+    () => [{ value: 12 }, { value: 24 }, { value: 48 }, { value: 100 }],
+    [],
+  );
+
   const totalValue = useMemo(() => {
     return products.reduce((sum, p) => sum + Number(p.price || 0), 0);
   }, [products]);
 
   const lowStock = useMemo(() => {
-    return products.filter((p) => p.isActiveStock && (p.stock ?? 0) <= 5).length;
+    return products.filter((p) => p.isActiveStock && (p.stock ?? 0) <= 5)
+      .length;
   }, [products]);
 
   const categoryTotal = useMemo(() => {
@@ -205,9 +218,6 @@ export function Products() {
 
   const handleDelete = async (id: string) => {
     if (deletingId) return;
-
-    const confirmed = window.confirm("Deseja excluir este produto?");
-    if (!confirmed) return;
 
     try {
       setDeletingId(id);
@@ -267,33 +277,35 @@ export function Products() {
 
       <div className={styles.gridContainer}>
         <div className={styles.filters}>
-          <div className={styles.search}>
-            <FiSearch className={styles.searchIcon} />
-            <input
-              className={styles.searchInput}
-              type="text"
-              placeholder="Buscar produtos..."
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value);
+          <div style={{display:"flex", gap:"10px"}}>
+            <div className={styles.search}>
+              <FiSearch className={styles.searchIcon} />
+              <input
+                className={styles.searchInput}
+                type="text"
+                placeholder="Buscar produtos..."
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                }}
+              />
+            </div>
+            <CustomSelect
+              options={LISTPAG.map((c) => ({ value: String(c.value), label: String(c.value) }))}
+              value={String(pageSize)}
+              onChange={(value) => {
+                setPageSize(Number(value));
+                setPage(1);
               }}
             />
           </div>
 
           <div className={styles.filterActions}>
-            <select
-              className={styles.categorySelect}
+            <CustomSelect
+              options={CATEGORIES.map((c) => ({ value: c.key, label: c.label }))}
               value={activeCat}
-              onChange={(event) => {
-                setActiveCat(event.target.value as CategoryKey);
-              }}
-            >
-              {CATEGORIES.map((c) => (
-                <option key={c.key} value={c.key}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
+              onChange={(value) => setActiveCat(value as CategoryKey)}
+            />
             <div style={{ position: "relative" }}>
               <button
                 className={styles.filterBtn}
@@ -327,8 +339,8 @@ export function Products() {
           <div style={{ padding: 12 }}>{error}</div>
         ) : (
           <div className={styles.grid}>
-            {filtered.map((p) => (
-              <ProductCard
+            {paginated.map((p) => (
+              <EntityCard
                 lowStock={p.lowStock}
                 key={p.id}
                 id={p.id}
@@ -336,6 +348,7 @@ export function Products() {
                 description={p.description}
                 category={p.category}
                 price={p.price}
+                promoPrice={p.promoPrice}
                 imageUrl={p.images}
                 status={p.status}
                 isActiveStock={p.isActiveStock}
@@ -349,22 +362,49 @@ export function Products() {
             ))}
           </div>
         )}
-      </div>
 
-      <div className={styles.bottom}>
-        <div className={styles.counter}>
-          Exibindo {total} produtos cadastrados
+        <div className={styles.bottom}>
+          <div className={styles.counter}>
+            Mostrando {paginated.length} de {total} produtos
+          </div>
+          <div className={styles.pagination}>
+            <button
+              className={`${styles.pageBtn} ${
+                currentPage === 1 ? styles.pageBtnDisabled : ""
+              }`}
+              type="button"
+              onClick={() => setPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              aria-label="Pagina anterior"
+            >
+              ‹
+            </button>
+            {pages.map((p) => (
+              <button
+                key={p}
+                className={`${styles.pageBtn} ${
+                  p === currentPage ? styles.pageBtnActive : ""
+                }`}
+                type="button"
+                onClick={() => setPage(p)}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              className={`${styles.pageBtn} ${
+                currentPage === maxPage ? styles.pageBtnDisabled : ""
+              }`}
+              type="button"
+              onClick={() => setPage(Math.min(maxPage, currentPage + 1))}
+              disabled={currentPage === maxPage}
+              aria-label="Proxima pagina"
+            >
+              ›
+            </button>
+          </div>
         </div>
       </div>
-
-      <button
-        className={styles.fab}
-        type="button"
-        aria-label="Adicionar produto"
-        onClick={() => navigate("/product-details")}
-      >
-        <FiPlus />
-      </button>
     </div>
   );
 }
