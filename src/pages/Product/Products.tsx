@@ -1,5 +1,5 @@
 import styles from "./Product.module.css";
-import { useEffect, useEffectEvent, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FiAlertTriangle,
   FiBox,

@@ -72,7 +72,6 @@ const PAYMENT_METHODS = [
 
 export function DarBaixaModal({ isOpen, onClose, product, onConfirm, onClick }: Props) {
   const { user } = useAuth();
-  const operatorLabel = user?.name || user?.email || "Usuário desconhecido";
   const operatorEmail = user?.email || "";
 
   // Sempre monta uma lista de "variações" incluindo o produto principal
