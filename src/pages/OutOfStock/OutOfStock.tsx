@@ -1,9 +1,8 @@
-import styles from "./Product.module.css";
+import styles from "./OutOfStock.module.css";
 import { useEffect, useMemo, useState } from "react";
 import {
   FiAlertTriangle,
   FiBox,
-  FiDollarSign,
   FiFilter,
   FiGrid,
   FiSearch,
@@ -11,18 +10,16 @@ import {
 import EntityCard from "../../components/EntityCard";
 import { SkeletonCard } from "../../components/SkeletonCard";
 import { FilterModal } from "../../components/FilterModal";
-import { Plus } from "lucide-react";
 import type { CategoryKey } from "../../types/Product-type";
 import { ProductService } from "../../service/Product.service";
 import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import { ProductCategoryEnum } from "../../dtos/enums/product-category.enum";
-import { useNavigate } from "react-router-dom";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 
 type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
 
-export function Products() {
+export function OutOfStock() {
   const [activeCat, setActiveCat] = useState<CategoryKey>("all");
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +27,6 @@ export function Products() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(12);
-  const navigate = useNavigate();
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [filters, setFilters] = useState<{
@@ -44,45 +40,41 @@ export function Products() {
     category: "all",
     sortBy: null,
   });
+
   const categoryFromKey = (key: CategoryKey) => {
     switch (key) {
-      case "shirt":
-        return ProductCategoryEnum.SHIRT;
-      case "tshirt":
-        return ProductCategoryEnum.TSHIRT;
-      case "polo":
-        return ProductCategoryEnum.POLO;
-      case "shorts":
-        return ProductCategoryEnum.SHORTS;
-      case "jacket":
-        return ProductCategoryEnum.JACKET;
-      case "pants":
-        return ProductCategoryEnum.PANTS;
-      case "dress":
-        return ProductCategoryEnum.DRESS;
-      case "sweater":
-        return ProductCategoryEnum.SWEATER;
-      case "hoodie":
-        return ProductCategoryEnum.HOODIE;
-      case "underwear":
-        return ProductCategoryEnum.UNDERWEAR;
-      case "footwear":
-        return ProductCategoryEnum.FOOTWEAR;
-      case "belt":
-        return ProductCategoryEnum.BELT;
-      case "wallet":
-        return ProductCategoryEnum.WALLET;
-      case "sunglasses":
-        return ProductCategoryEnum.SUNGLASSES;
-      default:
-        return null;
+      case "shirt": return ProductCategoryEnum.SHIRT;
+      case "tshirt": return ProductCategoryEnum.TSHIRT;
+      case "polo": return ProductCategoryEnum.POLO;
+      case "shorts": return ProductCategoryEnum.SHORTS;
+      case "jacket": return ProductCategoryEnum.JACKET;
+      case "pants": return ProductCategoryEnum.PANTS;
+      case "dress": return ProductCategoryEnum.DRESS;
+      case "sweater": return ProductCategoryEnum.SWEATER;
+      case "hoodie": return ProductCategoryEnum.HOODIE;
+      case "underwear": return ProductCategoryEnum.UNDERWEAR;
+      case "footwear": return ProductCategoryEnum.FOOTWEAR;
+      case "belt": return ProductCategoryEnum.BELT;
+      case "wallet": return ProductCategoryEnum.WALLET;
+      case "sunglasses": return ProductCategoryEnum.SUNGLASSES;
+      default: return null;
     }
   };
 
-  const filtered = useMemo(() => {
-    let current = products.filter((p) => p.stock !== 0);
+  // Produtos sem estoque: stock === 0 OU todas as variações com stock === 0
+  const outOfStockProducts = useMemo(() => {
+    return products.filter((p) => {
+      const mainStock = p.stock ?? 0;
+      const allVariationsEmpty = Array.isArray(p.variations) && p.variations.length > 0
+        ? p.variations.every((v) => (v.stock ?? 0) === 0)
+        : true;
+      return mainStock === 0 && allVariationsEmpty;
+    });
+  }, [products]);
 
-    // Filtro de categoria (select ou modal)
+  const filtered = useMemo(() => {
+    let current = [...outOfStockProducts];
+
     const categoryToFilter =
       filters.category !== "all" ? filters.category : activeCat;
     if (categoryToFilter !== "all") {
@@ -92,13 +84,11 @@ export function Products() {
       }
     }
 
-    // Filtro de busca
     const trimmed = query.trim().toLowerCase();
     if (trimmed) {
       current = current.filter((p) => p.name.toLowerCase().includes(trimmed));
     }
 
-    // Filtro de preço
     if (filters.minPrice) {
       const min = parseFloat(filters.minPrice);
       current = current.filter((p) => Number(p.price) >= min);
@@ -108,7 +98,6 @@ export function Products() {
       current = current.filter((p) => Number(p.price) <= max);
     }
 
-    // Ordenação
     if (filters.sortBy === "price-asc") {
       current = [...current].sort((a, b) => Number(a.price) - Number(b.price));
     } else if (filters.sortBy === "price-desc") {
@@ -118,7 +107,7 @@ export function Products() {
     }
 
     return current;
-  }, [activeCat, products, query, filters]);
+  }, [activeCat, outOfStockProducts, query, filters]);
 
   const total = filtered.length;
   const maxPage = Math.max(1, Math.ceil(total / pageSize));
@@ -133,10 +122,10 @@ export function Products() {
 
   const counts = useMemo(() => {
     const countBy = (category: ProductCategoryEnum) =>
-      products.filter((p) => p.category === category).length;
+      outOfStockProducts.filter((p) => p.category === category).length;
 
     return {
-      all: products.length,
+      all: outOfStockProducts.length,
       shirt: countBy(ProductCategoryEnum.SHIRT),
       tshirt: countBy(ProductCategoryEnum.TSHIRT),
       polo: countBy(ProductCategoryEnum.POLO),
@@ -152,7 +141,7 @@ export function Products() {
       wallet: countBy(ProductCategoryEnum.WALLET),
       sunglasses: countBy(ProductCategoryEnum.SUNGLASSES),
     };
-  }, [products]);
+  }, [outOfStockProducts]);
 
   const CATEGORIES: { key: CategoryKey; label: string }[] = useMemo(
     () => [
@@ -180,23 +169,9 @@ export function Products() {
     [],
   );
 
-  const totalValue = useMemo(() => {
-    return products.reduce((sum, p) => sum + Number(p.price || 0), 0);
-  }, [products]);
-
-  const lowStock = useMemo(() => {
-    return products.filter((p) => p.isActiveStock && (p.stock ?? 0) <= 5)
-      .length;
-  }, [products]);
-
   const categoryTotal = useMemo(() => {
-    return new Set(products.map((p) => p.category)).size;
-  }, [products]);
-
-  // const getPrimaryImageUrl = (images: ImageResponse[]) => {
-  //   const primary = (images || []).find((img: any) => img?.isPrimary);
-  //   return primary?.url || (images?.[0] as any)?.url || "";
-  // };
+    return new Set(outOfStockProducts.map((p) => p.category)).size;
+  }, [outOfStockProducts]);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -218,7 +193,6 @@ export function Products() {
 
   const handleDelete = async (id: string) => {
     if (deletingId) return;
-
     try {
       setDeletingId(id);
       await ProductService.remove(id);
@@ -235,55 +209,43 @@ export function Products() {
     <div className={styles.page}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Gestao de Produtos</h1>
+          <h1 className={styles.title}>Produtos sem estoque</h1>
           <p className={styles.subtitle}>
-            Organize seu catalogo, precos e niveis de estoque em um so lugar.
+            Visualize todos os produtos com estoque zerado para reposição.
           </p>
-        </div>
-
-        <div className={styles.headerActions}>
-          <button
-            className={styles.addBtn}
-            type="button"
-            onClick={() => navigate("/product-details")}
-          >
-            <Plus size={16} />
-            Cadastrar Produto
-          </button>
         </div>
       </div>
 
-      <div className={styles.stats}>
+      <section className={styles.metrics}>
         <StatCard
-          label="TOTAL DE PRODUTOS"
-          value={counts.all.toLocaleString("pt-BR")}
+          label="Total de produtos"
+          value={counts.all}
+          sub="Produtos sem estoque"
           icon={<FiBox />}
         />
         <StatCard
-          label="ESTOQUE BAIXO"
-          value={lowStock}
-          icon={<FiAlertTriangle />}
+          label="Categorias"
+          value={categoryTotal}
+          sub="Categorias afetadas"
+          icon={<FiGrid />}
         />
         <StatCard
-          label="VALOR TOTAL"
-          value={totalValue.toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-          })}
-          icon={<FiDollarSign />}
+          label="Atenção"
+          value={"Reposição urgente"}
+          sub="Todos os itens zerados"
+          icon={<FiAlertTriangle />}
         />
-        <StatCard label="CATEGORIAS" value={categoryTotal} icon={<FiGrid />} />
-      </div>
+      </section>
 
       <div className={styles.gridContainer}>
         <div className={styles.filters}>
-          <div style={{display:"flex", gap:"10px"}}>
+          <div style={{ display: "flex", gap: "10px" }}>
             <div className={styles.search}>
               <FiSearch className={styles.searchIcon} />
               <input
                 className={styles.searchInput}
                 type="text"
-                placeholder="Buscar produtos..."
+                placeholder="Buscar produtos sem estoque..."
                 value={query}
                 onChange={(event) => {
                   setQuery(event.target.value);
@@ -291,7 +253,10 @@ export function Products() {
               />
             </div>
             <CustomSelect
-              options={LISTPAG.map((c) => ({ value: String(c.value), label: String(c.value) }))}
+              options={LISTPAG.map((c) => ({
+                value: String(c.value),
+                label: String(c.value),
+              }))}
               value={String(pageSize)}
               onChange={(value) => {
                 setPageSize(Number(value));
@@ -353,21 +318,34 @@ export function Products() {
                   ...(p.images || []),
                   ...(p.variations || [])
                     .filter((v) => v.imageUrl)
-                    .map((v) => ({ url: v.imageUrl!, fileName: v.name || "", id: v.id || "", isPrimary: false })),
+                    .map((v) => ({
+                      url: v.imageUrl!,
+                      fileName: v.name || "",
+                      id: v.id || "",
+                      isPrimary: false,
+                    })),
                 ]}
                 stock={p.stock}
                 isActiveStock={p.isActiveStock}
                 available
                 color={p.color}
-                colors={Array.from(new Set([
-                  ...(p.color ? [p.color] : []),
-                  ...((p.variations || []).map((v) => v.color).filter(Boolean) as string[]),
-                ]))}
+                colors={Array.from(
+                  new Set([
+                    ...(p.color ? [p.color] : []),
+                    ...((p.variations || [])
+                      .map((v) => v.color)
+                      .filter(Boolean) as string[]),
+                  ]),
+                )}
                 size={p.size}
-                sizes={Array.from(new Set([
-                  ...(p.size ? [p.size] : []),
-                  ...((p.variations || []).map((v) => v.size).filter(Boolean) as string[]),
-                ]))}
+                sizes={Array.from(
+                  new Set([
+                    ...(p.size ? [p.size] : []),
+                    ...((p.variations || [])
+                      .map((v) => v.size)
+                      .filter(Boolean) as string[]),
+                  ]),
+                )}
                 variations={p.variations}
                 status={p.status}
                 onEdit={() => {}}

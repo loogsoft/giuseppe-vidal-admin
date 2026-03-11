@@ -11,6 +11,7 @@ import { Save, Plus, Pencil } from "lucide-react";
 import { ImageGallery } from "../../components/ImageGallery";
 import EntityCard from "../../components/EntityCard";
 import { ButtonBack } from "../../components/ButtonBack/ButtonBack";
+import { FiTrash2 } from "react-icons/fi";
 
 type Variation = ProductVariationRequestDto | ProductVariationResponseDto;
 
@@ -253,6 +254,17 @@ export function ProductsDetails() {
 
     if (!variationStock.trim()) {
       alert("Estoque da variação é obrigatório");
+      return;
+    }
+
+    const duplicate = variations.some((v, i) =>
+      v.color === variationColor.trim() &&
+      v.size === variationSize.trim() &&
+      i !== editingVariationIndex
+    );
+
+    if (duplicate) {
+      alert(`Já existe uma variação com a cor ${variationColor} e tamanho ${variationSize}. Escolha uma combinação diferente.`);
       return;
     }
 
@@ -886,15 +898,47 @@ export function ProductsDetails() {
                         : { id: img.id || "", fileName: img.fileName || "", url: img.url || "", isPrimary: false }
                     );
                     return (
-                      <div key={index} className={styles.variationCardWrapper}>
-                        <button
-                          type="button"
-                          className={styles.variationHoverOverlay}
-                          onClick={() => onEditVariation(index)}
-                          aria-label="Editar variação"
-                        >
-                          <Pencil size={28} />
-                        </button>
+                      <div
+                        key={index}
+                        className={styles.variationCardWrapper}
+                        style={{ position: 'relative' }}
+                        onMouseEnter={e => {
+                          const el = (e.currentTarget as HTMLElement).querySelector('.variation-actions-hover') as HTMLElement;
+                          if (el) { el.style.opacity = '1'; el.style.pointerEvents = 'auto'; }
+                        }}
+                        onMouseLeave={e => {
+                          const el = (e.currentTarget as HTMLElement).querySelector('.variation-actions-hover') as HTMLElement;
+                          if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
+                        }}
+                      >
+                        <div className="variation-actions-hover" style={{
+                          position: 'absolute',
+                          top: 12,
+                          right: 12,
+                          display: 'flex',
+                          gap: 6,
+                          zIndex: 2,
+                          opacity: 0,
+                          pointerEvents: 'none',
+                          transition: 'opacity 0.15s',
+                        }}>
+                          <button
+                            type="button"
+                            onClick={() => onRemoveVariation(index)}
+                            aria-label="Deletar variação"
+                            style={{ color: '#fff', background: '#ef4444', border: 'none', cursor: 'pointer', padding: 2, width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <FiTrash2 size={18} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => onEditVariation(index)}
+                            aria-label="Editar variação"
+                            style={{ color: '#444', background: 'none', border: 'none', cursor: 'pointer', padding: 2, width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                          >
+                            <Pencil size={18} />
+                          </button>
+                        </div>
                         <EntityCard
                           id={String(index)}
                           name={variation.name || `${variation.color ?? ""} ${variation.size ?? ""}`.trim() || `Variação ${index + 1}`}
@@ -911,7 +955,6 @@ export function ProductsDetails() {
                           status={variation.isActive !== false ? ProductStatusEnum.ACTIVED : ProductStatusEnum.DISABLED}
                           navigateTo=""
                           onEdit={() => onEditVariation(index)}
-                          onDelete={() => onRemoveVariation(index)}
                         />
                       </div>
                     );

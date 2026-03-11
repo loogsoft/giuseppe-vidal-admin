@@ -1,21 +1,20 @@
-import type { FormEvent, CSSProperties } from "react";
+import type { FormEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Login.module.css";
-import { FiMail, FiLock, FiEye, FiEyeOff, FiArrowRight } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiArrowRight } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import { UserService } from "../../service/User.service";
-import logo from "../../assets/logo-branco.png";
+import logoLight from "../../assets/logo-preta.png";
+import logoDark from "../../assets/logo-branco.png";
 import { CircularProgress } from "@mui/material";
 import { toast } from "react-toastify";
 import { HealthService } from "../../service/health.service";
-type Props = {
-  backgroundImageUrl?: string;
-};
+import { useTheme } from "../../contexts/useTheme";
+import { ChevronLeft, Moon, Sun, Headset } from "lucide-react";
 
-export default function Login({
-  backgroundImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQx5T1LvEjeIQBt-UxZLODbdXIF-tr7NXUvdQ&s",
-}: Props) {
+export default function Login() {
+  const { theme, toggleTheme } = useTheme();
   const requestFailureMessage =
     "Erro ao processar sua solicitacao. Tente novamente em alguns instantes. Se o problema persistir, entre em contato com o suporte.";
   const supportPhone = "64999663524";
@@ -150,27 +149,61 @@ export default function Login({
     }
   }
 
-  return (
-    <div
-      className={styles.page}
-      style={{ "--heroImage": `url(${backgroundImageUrl})` } as CSSProperties}
-    >
-      <div className={styles.left}>
-        <div className={styles.leftBg} />
-        <div className={styles.leftGlow} />
-        <div className={styles.leftInner}>
-          <img src={logo} alt="Logo" className={styles.logoImg} />
-          <div className={styles.leftTitle}>Giuseppe Vidal</div>
-          <div className={styles.leftDesc}>
-            Gestão moderna de inventário e vendas
-            <br />
-            com inteligência e simplicidade.
-          </div>
-        </div>
-      </div>
+  function handleCodePaste(event: React.ClipboardEvent<HTMLInputElement>) {
+    event.preventDefault();
+    const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    if (!pasted) return;
+    const next = [...code];
+    for (let i = 0; i < 6; i++) {
+      next[i] = pasted[i] || "";
+    }
+    setCode(next);
+    const focusIndex = Math.min(pasted.length, 5);
+    codeRefs.current[focusIndex]?.focus();
+  }
 
-      <div className={styles.right}>
+  return (
+    <div className={styles.page}>
+      <div className={styles.pageTopBar}>
+        <a
+          className={styles.topBtn}
+          href={supportUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="Falar com suporte"
+          data-tooltip="Suporte"
+        >
+          <Headset size={18} />
+        </a>
+        <button
+          type="button"
+          className={styles.topBtn}
+          onClick={toggleTheme}
+          aria-label={theme === "dark" ? "Modo claro" : "Modo escuro"}
+          data-tooltip={theme === "dark" ? "Modo claro" : "Modo escuro"}
+        >
+          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+      </div>
+      <div className={styles.card}>
+        {step === "verify" && (
+          <button
+            type="button"
+            className={styles.backBtn}
+            onClick={() => setStep("login")}
+            aria-label="Voltar"
+            data-tooltip="Voltar"
+          >
+            <ChevronLeft size={18} />
+          </button>
+        )}
         <div className={styles.formWrap}>
+          <img
+            src={theme === "dark" ? logoDark : logoLight}
+            alt="Logo"
+            className={styles.logoImg}
+          />
+
           <div className={styles.header}>
             <div className={styles.h1}>Bem-vindo</div>
             <div className={styles.sub}>
@@ -183,9 +216,6 @@ export default function Login({
               <>
                 <label className={styles.label}>E-mail</label>
                 <div className={styles.inputWrap}>
-                  <span className={styles.inputIcon} aria-hidden>
-                    <FiMail />
-                  </span>
                   <input
                     className={styles.input}
                     value={email}
@@ -196,17 +226,9 @@ export default function Login({
                   />
                 </div>
 
-                <div className={styles.rowBetweenTop}>
-                  <label className={styles.label}>Senha</label>
-                  <button type="button" className={styles.forgot}>
-                    Esqueci minha senha
-                  </button>
-                </div>
+                <label className={styles.label} style={{ marginTop: 24 }}>Senha</label>
 
                 <div className={styles.inputWrap}>
-                  <span className={styles.inputIcon} aria-hidden>
-                    <FiLock />
-                  </span>
                   <input
                     className={styles.input}
                     value={password}
@@ -224,6 +246,7 @@ export default function Login({
                     {showPass ? <FiEyeOff /> : <FiEye />}
                   </button>
                 </div>
+
                 <label className={styles.check}>
                   <input
                     type="checkbox"
@@ -250,17 +273,6 @@ export default function Login({
                   )}
                 </button>
 
-                <div className={styles.support}>
-                  Ainda nao tem acesso?{" "}
-                  <a
-                    className={styles.supportLink}
-                    href={supportUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Fale com o suporte
-                  </a>
-                </div>
                 <div className={styles.copy}>© 2026 GIUSEPPE VIDAL.</div>
               </>
             ) : (
@@ -282,6 +294,7 @@ export default function Login({
                       }}
                       onChange={(e) => handleCodeChange(index, e.target.value)}
                       onKeyDown={(e) => handleCodeKeyDown(index, e)}
+                      onPaste={handleCodePaste}
                       inputMode="numeric"
                       maxLength={1}
                       aria-label={`Código ${index + 1}`}

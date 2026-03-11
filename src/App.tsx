@@ -10,6 +10,7 @@ import { useAuth } from "./contexts/useAuth";
 import { Supplier } from "./pages/Supplier/Supplier";
 import { SupplierDetails } from "./pages/Supplier/SupplierDetails";
 import { Profille } from "./pages/Profille/Profille";
+import { OutOfStock } from "./pages/OutOfStock/OutOfStock";
 
 export default function App() {
   const { isAuthenticated } = useAuth();
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/produtos" element={<Products />} />
         <Route path="/product-details/:id?" element={<ProductsDetails />} />
         <Route path="/discount-stock-details" element={<DiscountStockDetails />} />
+        <Route path="/out-of-stock" element={<OutOfStock />} />
         <Route path="/suppliers" element={<Supplier />} />
         <Route path="/supplier-details/:id?" element={<SupplierDetails />} />
         <Route path="/config/:id?" element={<Profille />} />

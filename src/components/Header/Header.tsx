@@ -6,18 +6,19 @@ import { useNavigate } from "react-router-dom";
 
 type HeaderProps = {
   title: string;
+  isMessageModalOpen: (value: boolean) => void;
 };
 
-export function Header({ title }: HeaderProps) {
+export function Header({ title, isMessageModalOpen }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const userInitial = user?.name 
+  const userInitial = user?.name
     ? user.name.charAt(0).toUpperCase()
-    : user?.email 
+    : user?.email
       ? user.email.charAt(0).toUpperCase()
-      : 'U';
+      : "U";
 
   const handleAvatarClick = () => {
     if (user?.id) {
@@ -29,7 +30,6 @@ export function Header({ title }: HeaderProps) {
     <header className={styles.header}>
       <h1 className={styles.title}>{title || ""}</h1>
 
-
       <div className={styles.right}>
         <button
           className={styles.iconButton}
@@ -40,12 +40,17 @@ export function Header({ title }: HeaderProps) {
           {theme === "dark" ? <FiSun /> : <FiMoon />}
         </button>
 
-        <button className={styles.iconButton} type="button" aria-label="Notificações">
+        <button
+          className={styles.iconButton}
+          type="button"
+          aria-label="Notificações"
+          onClick={() => isMessageModalOpen(true)}
+        >
           <FiBell />
         </button>
 
-        <button 
-          className={styles.avatar} 
+        <button
+          className={styles.avatar}
           onClick={handleAvatarClick}
           aria-label="Perfil"
           type="button"

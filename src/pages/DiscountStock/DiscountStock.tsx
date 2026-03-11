@@ -1,6 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import styles from "./DiscountStock.module.css";
-import { FiDollarSign, FiFilter, FiPackage, FiSearch, FiShoppingBag, FiUser } from "react-icons/fi";
+import {
+  FiDollarSign,
+  FiFilter,
+  FiPackage,
+  FiSearch,
+  FiShoppingBag,
+  FiUser,
+} from "react-icons/fi";
 import StatCard from "../../components/StatCard/StatCard";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 import { DiscountStockFilterModal } from "../../components/DiscountStockFilterModal";
@@ -11,49 +18,10 @@ import type { ProductResponse } from "../../dtos/response/product-response.dto";
 import { ProductStatusEnum } from "../../dtos/enums/product-status.enum";
 import { DarBaixaModal } from "../../components/DarBaixaModal";
 import { VoltarEstoqueModal } from "../../components/VoltarEstoqueModal";
-import type { StockHistoryItem } from "../../components/VoltarEstoqueModal";
+import { StockMovementService } from "../../service/Stock-movement.service";
 
 type StockLevel = "all" | "ok" | "low" | "critical";
 type SortOption = "alpha" | "priceAsc" | "priceDesc" | "stockAsc" | "stockDesc";
-
-const STOCK_HISTORY: StockHistoryItem[] = [
-  {
-    id: "h1",
-    date: "24/05/2024",
-    time: "12:15",
-    product: "Pinha Premium Grande",
-    quantity: 5,
-    reason: "Venda",
-    owner: "Ricardo Silva",
-  },
-  {
-    id: "h2",
-    date: "24/05/2024",
-    time: "11:30",
-    product: "Cesta Decorativa Rustica",
-    quantity: 2,
-    reason: "Avaria",
-    owner: "Ana Paula",
-  },
-  {
-    id: "h3",
-    date: "23/05/2024",
-    time: "17:45",
-    product: "Pinha Pequena (Saco 500g)",
-    quantity: 12,
-    reason: "Venda",
-    owner: "Ricardo Silva",
-  },
-  {
-    id: "h4",
-    date: "23/05/2024",
-    time: "10:30",
-    product: "Extrato de Pinha Organico",
-    quantity: 1,
-    reason: "Consumo",
-    owner: "Gerencia",
-  },
-];
 
 const getStockLevel = (p: ProductResponse): "ok" | "low" | "critical" => {
   if (!p.isActiveStock || p.stock === undefined) return "ok";
@@ -65,14 +33,21 @@ const getStockLevel = (p: ProductResponse): "ok" | "low" | "critical" => {
 export function DiscountStock() {
   const [products, setProducts] = useState<ProductResponse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [darBaixaProduct, setDarBaixaProduct] = useState<ProductResponse | null>(null);
-  const [voltarEstoqueItem, setVoltarEstoqueItem] = useState<StockHistoryItem | null>(null);
+  const [darBaixaProduct, setDarBaixaProduct] =
+    useState<ProductResponse | null>(null);
+  const [voltarEstoqueItem, setVoltarEstoqueItem] = useState<any | null>(null);
+  const [stockHistory, setStockHistory] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
   const [view, setView] = useState<"stock" | "history">("stock");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(6);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [activedFindAll, setActivedFindAll] = useState(false);
+
+  function alternValue() {
+    setActivedFindAll((prev) => !prev);
+  }
   const [filters, setFilters] = useState<{
     minPrice: string;
     maxPrice: string;
@@ -90,8 +65,8 @@ export function DiscountStock() {
   });
 
   const totalVendas = useMemo(
-    () => STOCK_HISTORY.reduce((acc, h) => acc + h.quantity, 0),
-    [],
+    () => stockHistory.reduce((acc, h) => acc + h.quantity, 0),
+    [stockHistory],
   );
 
   const faturamento = useMemo(
@@ -121,6 +96,21 @@ export function DiscountStock() {
       }
     };
     fetchProducts();
+  }, [activedFindAll]);
+
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        setLoading(true);
+        const data = await StockMovementService.findAll();
+        setStockHistory(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHistory();
   }, []);
 
   const LISTPAG: { value: number }[] = useMemo(
@@ -140,9 +130,12 @@ export function DiscountStock() {
     const term = search.trim().toLowerCase();
 
     let filtered = products.filter((item) => {
-      // Só exibe se tiver stock > 0 OU pelo menos uma variação com stock > 0
-      const hasStock = (item.stock ?? 0) > 0 || (item.variations?.some(v => Number(v.stock) > 0));
-      if (!hasStock) return false;
+      // Só lista se o produto ou alguma variação tiver estoque > 0
+      const mainStock = item.stock ?? 0;
+      const variationsStock = Array.isArray(item.variations)
+        ? item.variations.some((v) => Number(v.stock ?? 0) > 0)
+        : false;
+      if (mainStock <= 0 && !variationsStock) return false;
 
       const matchesSearch = term
         ? `${item.name} ${item.description ?? ""} ${item.category}`
@@ -165,15 +158,24 @@ export function DiscountStock() {
       const matchesLevel =
         filters.stockLevel === "all" || level === filters.stockLevel;
 
-      return matchesSearch && matchesCategory && matchesPrice && matchesStock && matchesLevel;
+      return (
+        matchesSearch &&
+        matchesCategory &&
+        matchesPrice &&
+        matchesStock &&
+        matchesLevel
+      );
     });
 
     const sorted = [...filtered];
     sorted.sort((a, b) => {
-      if (filters.sortBy === "priceAsc") return Number(a.price) - Number(b.price);
-      if (filters.sortBy === "priceDesc") return Number(b.price) - Number(a.price);
+      if (filters.sortBy === "priceAsc")
+        return Number(a.price) - Number(b.price);
+      if (filters.sortBy === "priceDesc")
+        return Number(b.price) - Number(a.price);
       if (filters.sortBy === "stockAsc") return (a.stock ?? 0) - (b.stock ?? 0);
-      if (filters.sortBy === "stockDesc") return (b.stock ?? 0) - (a.stock ?? 0);
+      if (filters.sortBy === "stockDesc")
+        return (b.stock ?? 0) - (a.stock ?? 0);
       return a.name.localeCompare(b.name, "pt-BR");
     });
 
@@ -182,11 +184,15 @@ export function DiscountStock() {
 
   const filteredHistory = useMemo(() => {
     const term = search.trim().toLowerCase();
-    if (!term) return STOCK_HISTORY;
-    return STOCK_HISTORY.filter((item) =>
-      `${item.product} ${item.reason} ${item.owner}`.toLowerCase().includes(term),
-    );
-  }, [search]);
+    if (!term) return stockHistory;
+    return stockHistory.filter((item) => {
+      const productName = item.variation?.name || "";
+      const responsible = item.responsibleName || "";
+      return `${productName} ${item.reason} ${responsible}`
+        .toLowerCase()
+        .includes(term);
+    });
+  }, [search, stockHistory]);
 
   useEffect(() => {
     setPage(1);
@@ -266,7 +272,7 @@ export function DiscountStock() {
       {view === "stock" ? (
         <section className={styles.tablePanel}>
           <div className={styles.filters}>
-            <div style={{display:"flex", gap:"10px"}}>
+            <div style={{ display: "flex", gap: "10px" }}>
               <div className={styles.search}>
                 <FiSearch className={styles.searchIcon} />
                 <input
@@ -277,7 +283,10 @@ export function DiscountStock() {
                 />
               </div>
               <CustomSelect
-                options={LISTPAG.map((c) => ({ value: String(c.value), label: String(c.value) }))}
+                options={LISTPAG.map((c) => ({
+                  value: String(c.value),
+                  label: String(c.value),
+                }))}
                 value={String(pageSize)}
                 onChange={(value) => {
                   setPageSize(Number(value));
@@ -314,7 +323,9 @@ export function DiscountStock() {
           </div>
           <div className={styles.cardGrid}>
             {loading
-              ? Array.from({ length: pageSize }).map((_, i) => <SkeletonCard key={i} />)
+              ? Array.from({ length: pageSize }).map((_, i) => (
+                  <SkeletonCard key={i} />
+                ))
               : pagedStockItems.map((item) => (
                   <EntityCard
                     key={item.id}
@@ -329,24 +340,38 @@ export function DiscountStock() {
                       ...(item.images || []),
                       ...(item.variations || [])
                         .filter((v) => v.imageUrl)
-                        .map((v) => ({ url: v.imageUrl!, fileName: v.name || "", id: "", isPrimary: false })),
+                        .map((v) => ({
+                          url: v.imageUrl!,
+                          fileName: v.name || "",
+                          id: "",
+                          isPrimary: false,
+                        })),
                     ]}
                     stock={item.stock}
                     lowStock={item.lowStock}
                     isActiveStock={item.isActiveStock}
                     available={item.status === ProductStatusEnum.ACTIVED}
                     color={item.color}
-                    colors={Array.from(new Set([
-                      ...(item.color ? [item.color] : []),
-                      ...((item.variations || []).map((v) => v.color).filter(Boolean) as string[]),
-                ]))}
+                    colors={Array.from(
+                      new Set([
+                        ...(item.color ? [item.color] : []),
+                        ...((item.variations || [])
+                          .map((v) => v.color)
+                          .filter(Boolean) as string[]),
+                      ]),
+                    )}
                     size={item.size}
-                    sizes={Array.from(new Set([
-                      ...(item.size ? [item.size] : []),
-                      ...((item.variations || []).map((v) => v.size).filter(Boolean) as string[]),
-                    ]))}
+                    sizes={Array.from(
+                      new Set([
+                        ...(item.size ? [item.size] : []),
+                        ...((item.variations || [])
+                          .map((v) => v.size)
+                          .filter(Boolean) as string[]),
+                      ]),
+                    )}
                     navigateTo=""
                     status={item.status}
+                    variations={item.variations}
                     actionButton={
                       <button
                         className={styles.actionBtn}
@@ -418,7 +443,10 @@ export function DiscountStock() {
                 />
               </div>
               <CustomSelect
-                options={LISTPAG.map((c) => ({ value: String(c.value), label: String(c.value) }))}
+                options={LISTPAG.map((c) => ({
+                  value: String(c.value),
+                  label: String(c.value),
+                }))}
                 value={String(pageSize)}
                 onChange={(value) => {
                   setPageSize(Number(value));
@@ -454,8 +482,8 @@ export function DiscountStock() {
                 key={item.id}
                 id={item.id}
                 type="product"
-                name={item.product}
-                description={`${item.date} às ${item.time} — ${item.owner}`}
+                name={item.variation?.name || ""}
+                description={`${item.reason} — ${item.responsibleName}`}
                 category={item.reason as any}
                 price={0}
                 imageUrl={[]}
@@ -469,7 +497,7 @@ export function DiscountStock() {
                   <>
                     <div className={styles.historyOwnerBadge}>
                       <FiUser className={styles.historyOwnerIcon} />
-                      <span>{item.owner}</span>
+                      <span>{item.responsibleName}</span>
                     </div>
                     <button
                       className={styles.actionOutlineBtn}
@@ -534,6 +562,7 @@ export function DiscountStock() {
         isOpen={darBaixaProduct !== null}
         onClose={() => setDarBaixaProduct(null)}
         product={darBaixaProduct}
+        onClick={() => alternValue()}
         onConfirm={(data) => {
           console.log("Baixa confirmada:", data);
           setDarBaixaProduct(null);

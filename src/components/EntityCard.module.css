@@ -1,7 +1,7 @@
 .card {
   position: relative;
   border-radius: 25px;
-  overflow: hidden;
+  overflow: visible;
   background: var(--surface);
   box-shadow: var(--shadow-1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -19,6 +19,9 @@
   position: relative;
   height: 200px;
   background: var(--surface-muted);
+  overflow: hidden;
+  border-top-left-radius: 25px;
+  border-top-right-radius: 25px;
 }
 
 .supplierCard {
@@ -27,6 +30,7 @@
 
 .EntityCard {
   background: var(--surface);
+  height: 500px;
 }
 
 .supplierMedia {
@@ -429,5 +433,158 @@
   border-radius: 5px;
   box-shadow: 0 2px 12px rgba(255, 200, 61, 0.5);
   border: 1px solid rgba(255, 200, 61, 0.3);
+}
+
+.variationBlock {
+  margin-top: 4px;
+  position: relative;
+}
+
+.variationToggle {
+  background: none;
+  border: none;
+  outline: none;
+  box-shadow: none;
+  display: flex;
+  align-items: center;
+  cursor: default;
+  padding: 0;
+  font-weight: 500;
+  font-size: 13px;
+  color: #444;
+  gap: 6px;
+}
+
+.variationToggleIcon {
+  margin-right: 6px;
+  color: var(--highlight-primary);
+}
+
+.variationToggleLabel {
+  font-weight: 600;
+  color: #000;
+}
+
+:global([data-theme="dark"]) .variationToggleLabel {
+  color: var(--text-primary);
+}
+
+.variationChevron {
+  font-size: 13px;
+  color: var(--text-muted);
+  transition: transform 0.2s ease;
+}
+
+
+.variationList {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.variationBlock:hover .variationList {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.variationCard {
+  display: flex;
+  flex-direction: column;
+  background: #f8f8f8;
+  border-radius: 10px;
+  padding: 8px 12px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  gap: 2px;
+}
+
+.variationCardRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.variationLabel {
+  font-weight: 600;
+  font-size: 13px;
+  color: #222;
+}
+
+.variationValue {
+  font-weight: 400;
+}
+
+.variationStock {
+  font-weight: 500;
+  font-size: 12px;
+  color: #444;
+}
+
+.variationColors {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.variationColorDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid #ddd;
+}
+
+.productDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+  background: #f8f8f8;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+:global([data-theme="dark"]) .productDetails {
+  background: var(--surface-muted);
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.detailLabel {
+  font-weight: 600;
+  font-size: 12px;
+  color: #666;
+}
+
+:global([data-theme="dark"]) .detailLabel {
+  color: var(--text-muted);
+}
+
+.detailValue {
+  font-weight: 500;
+  font-size: 13px;
+  color: #222;
+}
+
+:global([data-theme="dark"]) .detailValue {
+  color: var(--text-primary);
 }
 

@@ -16,12 +16,14 @@ import styles from "./DarBaixaModal.module.css";
 import type { ProductResponse } from "../dtos/response/product-response.dto";
 import { useAuth } from "../contexts/useAuth";
 import { StockMovementService } from "../service/Stock-movement.service";
+import { CircularProgress } from "@mui/material";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
   product: ProductResponse | null;
   onConfirm: (data: BaixaFormData) => void;
+  onClick: () => void;
 };
 
 export type BaixaFormData = {
@@ -68,7 +70,7 @@ const PAYMENT_METHODS = [
   "N/A",
 ];
 
-export function DarBaixaModal({ isOpen, onClose, product, onConfirm }: Props) {
+export function DarBaixaModal({ isOpen, onClose, product, onConfirm, onClick }: Props) {
   const { user } = useAuth();
   const operatorLabel = user?.name || user?.email || "Usuário desconhecido";
   const operatorEmail = user?.email || "";
@@ -80,16 +82,18 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm }: Props) {
       name: product?.name,
       price: product?.price,
       stock: product?.stock ?? 0,
-      color: product?.color ?? '',
-      size: product?.size ?? '',
-      imageUrl: product?.images?.[0]?.url ?? '',
+      color: product?.color ?? "",
+      size: product?.size ?? "",
+      imageUrl: product?.images?.[0]?.url ?? "",
       isMain: true,
     },
-    ...(product?.variations?.map(v => ({ ...v, isMain: false })) ?? [])
+    ...(product?.variations?.map((v) => ({ ...v, isMain: false })) ?? []),
   ];
 
   const hasVariations = allVariations.length > 1;
-  const [selectedVariationIdx, setSelectedVariationIdx] = useState<number | null>(hasVariations ? null : 0);
+  const [selectedVariationIdx, setSelectedVariationIdx] = useState<
+    number | null
+  >(hasVariations ? null : 0);
   const [form, setForm] = useState({
     quantity: 1,
     reason: "Venda",
@@ -103,14 +107,23 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm }: Props) {
   const [error, setError] = useState("");
   const [reasonOpen, setReasonOpen] = useState(false);
   const reasonRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!reasonOpen && !responsibleOpen) return;
     const handler = (e: MouseEvent) => {
-      if (reasonOpen && reasonRef.current && !reasonRef.current.contains(e.target as Node)) {
+      if (
+        reasonOpen &&
+        reasonRef.current &&
+        !reasonRef.current.contains(e.target as Node)
+      ) {
         setReasonOpen(false);
       }
-      if (responsibleOpen && responsibleRef.current && !responsibleRef.current.contains(e.target as Node)) {
+      if (
+        responsibleOpen &&
+        responsibleRef.current &&
+        !responsibleRef.current.contains(e.target as Node)
+      ) {
         setResponsibleOpen(false);
       }
     };
@@ -120,41 +133,41 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm }: Props) {
 
   if (!isOpen || !product) return null;
 
-
   // ...removido duplicidade...
 
   const selectedVariation =
-    selectedVariationIdx !== null
-      ? allVariations[selectedVariationIdx]
-      : null;
+    selectedVariationIdx !== null ? allVariations[selectedVariationIdx] : null;
 
-  const currentStock = selectedVariation
-    ? Number(selectedVariation.stock)
-    : 0;
+  const currentStock = selectedVariation ? Number(selectedVariation.stock) : 0;
   const isOverStock = form.quantity > currentStock;
   const isZero = form.quantity <= 0;
 
   const handleConfirm = async () => {
+    setLoading(true);
     if (selectedVariationIdx === null) {
       setError("Selecione uma variação antes de confirmar.");
+      setLoading(false);
       return;
     }
     if (!form.responsible.trim()) {
       setError("Informe o responsável pela baixa.");
+      setLoading(false);
       return;
     }
     if (isZero) {
       setError("A quantidade deve ser maior que zero.");
+      setLoading(false);
       return;
     }
     if (isOverStock) {
       setError("Quantidade maior que o estoque disponível.");
+      setLoading(false);
       return;
     }
     setError("");
 
     try {
-      if (!selectedVariation?.id) throw new Error('Variação não selecionada');
+      if (!selectedVariation?.id) throw new Error("Variação não selecionada");
       await StockMovementService.create({
         variationId: selectedVariation.id,
         type: "OUT",
@@ -169,8 +182,11 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm }: Props) {
         ...form,
         operatorEmail,
         variationId: selectedVariation.id,
-        variationLabel: `${selectedVariation.color ?? ''} ${selectedVariation.size ?? ''}`.trim(),
+        variationLabel:
+          `${selectedVariation.color ?? ""} ${selectedVariation.size ?? ""}`.trim(),
       });
+      setLoading(false);
+      onClick();
       onClose();
       setForm({
         quantity: 1,
@@ -247,7 +263,7 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm }: Props) {
               const isSelected = selectedVariationIdx === idx;
               return (
                 <button
-                  key={v.id + (v.isMain ? '-main' : '')}
+                  key={v.id + (v.isMain ? "-main" : "")}
                   type="button"
                   className={`${styles.variationChip} ${isSelected ? styles.variationChipActive : ""} ${vStock === 0 ? styles.variationChipEmpty : ""}`}
                   onClick={() => {
@@ -257,7 +273,11 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm }: Props) {
                     setForm((f) => ({ ...f, quantity: 1 }));
                   }}
                   disabled={!hasVariations && idx === 0}
-                  style={!hasVariations && idx === 0 ? { cursor: 'default', opacity: 0.7 } : {}}
+                  style={
+                    !hasVariations && idx === 0
+                      ? { cursor: "default", opacity: 0.7 }
+                      : {}
+                  }
                 >
                   {v.imageUrl ? (
                     <img
@@ -272,12 +292,16 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm }: Props) {
                     />
                   )}
                   <div className={styles.variationChipInfo}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span
+                      style={{ display: "flex", alignItems: "center", gap: 6 }}
+                    >
                       <span
                         className={styles.variationColorDot}
                         style={{ background: v.color || "#ccc" }}
                       />
-                      <span className={styles.variationChipSize}>{v.size || v.name}</span>
+                      <span className={styles.variationChipSize}>
+                        {v.size || v.name}
+                      </span>
                     </span>
                     {vPrice !== null && (
                       <span className={styles.variationChipPrice}>
@@ -393,7 +417,14 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm }: Props) {
                 type="button"
                 className={`${styles.select} ${styles.reasonTrigger}`}
                 onClick={() => setResponsibleOpen((o) => !o)}
-                style={error && !form.responsible.trim() ? { borderColor: '#ef4444', boxShadow: '0 0 0 3px rgba(239, 68, 68, 0.1)' } : {}}
+                style={
+                  error && !form.responsible.trim()
+                    ? {
+                        borderColor: "#ef4444",
+                        boxShadow: "0 0 0 3px rgba(239, 68, 68, 0.1)",
+                      }
+                    : {}
+                }
               >
                 {form.responsible || "Selecione o responsável"}
               </button>
@@ -459,10 +490,21 @@ export function DarBaixaModal({ isOpen, onClose, product, onConfirm }: Props) {
         <div className={styles.actions}>
           <button
             className={styles.confirmBtn}
-            /* type="button" */ onClick={handleConfirm}
+            type="submit"
+            onClick={handleConfirm}
           >
-            <FiCheckCircle />
-            Confirmar Baixa
+            {loading ? (
+              <CircularProgress
+                size={20}
+                color="inherit"
+                className={styles.loading}
+              />
+            ) : (
+              <div style={{ display: "flex", gap: "10px" }}>
+                <FiCheckCircle />
+                Confirmar Baixa
+              </div>
+            )}
           </button>
           <button className={styles.cancelBtn} type="button" onClick={onClose}>
             Cancelar
