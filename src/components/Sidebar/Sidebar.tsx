@@ -1,4 +1,4 @@
-import { NavLink, useNavigate, useLocation } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   FiGrid,
   FiShoppingCart,
@@ -83,7 +83,6 @@ export function Sidebar() {
   const { logout, user } = useAuth();
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const location = useLocation();
   const [openGroups, setOpenGroups] = useState<{ [key: string]: boolean }>({});
 
   function handleLogout() {
