@@ -33,6 +33,7 @@ type SupplierCardData = {
   initials: string;
   avatarColor: string;
   openDiscountStock: number;
+  imageUrl: { url: string; id?: string; publicId?: string }[];
 };
 
 const AVATAR_COLORS = ["rgba(255, 200, 61, 0.2)"];
@@ -90,6 +91,7 @@ const mapSupplierCard = (
       item.avatarColor ?? AVATAR_COLORS[index % AVATAR_COLORS.length],
     ),
     openDiscountStock: Number(item.openDiscountStock ?? 0),
+    imageUrl: Array.isArray(item.images) ? item.images : [],
   };
 };
 
@@ -256,14 +258,6 @@ export function Supplier() {
 
         />
         <StatCard
-          label="BAIXAS EM ABERTO"
-          value={openDiscountStock}
-          icon={<FiPackage />}
-          iconColor="#FFFBEB"
-          iconBackgroundColor="#F59E0B"
-          valueColor="#F59E0B"
-        />
-        <StatCard
           label="CATEGORIAS"
           value={categoriesTotal}
           icon={<FiGrid />}
@@ -365,6 +359,7 @@ export function Supplier() {
                 location={supplier.location}
                 isActive={supplier.status === "active"}
                 initials={supplier.initials}
+                imageUrl={supplier.imageUrl}
                 avatarColor={supplier.avatarColor}
                 onEdit={(id) => navigate(`/supplier-details/${id}`)}
                 onDelete={(id) => handleDelete(id)}

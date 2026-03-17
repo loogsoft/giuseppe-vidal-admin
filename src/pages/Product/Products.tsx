@@ -206,11 +206,11 @@ export function Products() {
   );
 
   const totalValue = useMemo(() => {
-    return products.reduce((sum, p) => sum + Number(p.price || 0), 0);
+    return products.reduce((sum, p) => sum + Number(p.price || 0) +  Number(p.variations?.reduce((vSum, v) => vSum + Number(v.price || 0), 0) || 0), 0);
   }, [products]);
 
   const lowStock = useMemo(() => {
-    return products.filter((p) => p.isActiveStock && (p.stock ?? 0) <= p.lowStock)
+    return products.filter((p) => (p.stock ?? 0) <= p.lowStock)
       .length;
   }, [products]);
 
@@ -235,7 +235,7 @@ export function Products() {
           const primaryImage = (p.images || []).find((img) => img.isPrimary);
           const imageUrl = primaryImage?.url || p.images?.[0]?.url || "";
 
-          if (p.isActiveStock && (p.stock ?? 0) === 0) {
+          if ((p.stock ?? 0) === 0) {
             try {
               await MessageService.create({
                 productId: p.id,
@@ -245,7 +245,7 @@ export function Products() {
                 description: `O produto "${p.name}" foi esgotado. Estoque zerado. Realize a reposição imediatamente.`,
               });
             } catch {}
-          } else if (p.isActiveStock && (p.lowStock ?? 0) > (p.stock ?? 0)) {
+          } else if ((p.lowStock ?? 0) > (p.stock ?? 0)) {
             try {
               await MessageService.create({
                 productId: p.id,
@@ -273,7 +273,7 @@ export function Products() {
                   });
                 } catch {}
               } else if (
-                p.isActiveStock &&
+                
                 (p.lowStock ?? 0) > Number(v.stock ?? 0)
               ) {
                 try {
@@ -461,14 +461,14 @@ export function Products() {
                   ...(p.variations || [])
                     .filter((v) => v.imageUrl)
                     .map((v) => ({
-                      url: v.imageUrl!,
+                      url: Array.isArray(v.imageUrl) ? (v.imageUrl[0] || "") : (v.imageUrl || ""),
                       fileName: v.name || "",
                       id: v.id || "",
                       isPrimary: false,
                     })),
                 ]}
                 stock={p.stock}
-                isActiveStock={p.isActiveStock}
+
                 available
                 color={p.color}
                 colors={Array.from(

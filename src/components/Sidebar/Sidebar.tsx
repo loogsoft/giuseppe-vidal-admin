@@ -8,6 +8,7 @@ import {
   FiAlertCircle,
   FiTarget,
   FiChevronDown,
+  FiCreditCard,
 } from "react-icons/fi";
 import styles from "./Sidebar.module.css";
 import { IoExitOutline } from "react-icons/io5";
@@ -15,7 +16,8 @@ import { useAuth } from "../../contexts/useAuth";
 import { useTheme } from "../../contexts/useTheme";
 import logoLight from "../../assets/logo-preta.png";
 import logoDark from "../../assets/logo-branco.png";
-import { useState} from "react";
+import { useState } from "react";
+import { GitGraphIcon } from "lucide-react";
 
 // Estrutura dinâmica do menu
 const menu = [
@@ -38,7 +40,7 @@ const menu = [
     icon: FiShoppingCart,
     label: "Baixa de estoque",
     path: "/discount-stock",
-    color: "#0984E3",
+    color: "#005ca2",
   },
   {
     type: "item",
@@ -55,10 +57,17 @@ const menu = [
     color: "#F0932B",
   },
   {
+    type: "item",
+    icon: FiCreditCard,
+    label: "Crediarios",
+    path: "/credit",
+    color: "#ffd900",
+  },
+  {
     type: "group",
-    icon: FiTarget,
+    icon: GitGraphIcon,
     label: "Estratégias",
-    color: "#6C63FF",
+    color: "#438fe1",
     key: "estrategias",
     children: [
       {
@@ -67,13 +76,6 @@ const menu = [
         label: "Roleta",
         path: "/roulette",
         color: "#6C63FF",
-      },
-      {
-        type: "item",
-        icon: FiTarget,
-        label: "Crediarios",
-        path: "/credit",
-        color: "#ffe863",
       },
     ],
   },
@@ -101,7 +103,6 @@ export function Sidebar() {
     .join("")
     .slice(0, 2);
 
-  // Renderização de item simples
   const renderItem = (item: any) => {
     return (
       <NavLink
@@ -112,32 +113,19 @@ export function Sidebar() {
         }
         style={{ gap: 12 }}
       >
-        <item.icon className={styles.icon} color={item.color} size={20} />
+        <item.icon className={styles.icon} color={item.color} size={22} />
         <span>{item.label}</span>
       </NavLink>
     );
   };
 
-  // Renderização de grupo com subitens
   const renderGroup = (group: any) => {
     const isOpen = !!openGroups[group.key];
     return (
       <div key={group.key}>
         <button
           type="button"
-          className={styles.link}
-          style={{
-            gap: 12,
-            width: "100%",
-            background: "none",
-            border: "none",
-            fontWeight: 400,
-            fontSize: 14,
-            padding: "10px 12px",
-            borderRadius: 12,
-            cursor: "pointer",
-            transition: "background 0.2s",
-          }}
+          className={styles.linkk}
           onClick={() =>
             setOpenGroups((prev) => ({
               ...prev,
@@ -147,9 +135,7 @@ export function Sidebar() {
           aria-expanded={isOpen}
         >
           <group.icon className={styles.icon} color={group.color} size={20} />
-          <span style={{ flex: 1, textAlign: "left", color: "#222" }}>
-            {group.label}
-          </span>
+          <span style={{ flex: 1, textAlign: "left", fontSize: 15 }}>{group.label}</span>
           <span
             style={{
               display: "flex",
@@ -164,7 +150,7 @@ export function Sidebar() {
         </button>
         <div
           className={isOpen ? styles.submenuList : styles.submenuListHidden}
-          style={{ paddingLeft:  20, marginTop: 0 }}
+          style={{ paddingLeft: 20, marginTop: 0 }}
         >
           {isOpen && group.children.map((child: any) => renderItem(child))}
         </div>
@@ -178,22 +164,21 @@ export function Sidebar() {
         <div className={styles.brand}>
           <div className={styles.brandIcon} aria-hidden="true">
             <img
-              src={theme === "dark" ? logoDark : logoLight}
+              src={theme === "light" ? logoDark : logoLight}
               alt="Logo"
-              style={{ width: 48, height: 48, marginBottom: 8 }}
+              style={{ width: 40, height: 40 }}
             />
           </div>
           <div style={{ paddingTop: 0 }}>
             <strong
               className={styles.brandTitle}
-              style={{ fontSize: 15, letterSpacing: 1 }}
+              style={{ fontSize: 17, letterSpacing: 1 }}
             >
               GIUSEPPEVIDAL
             </strong>
           </div>
         </div>
         <div className={styles.footerDivider} />
-
 
         <nav className={styles.menu}>
           {menu.map((node) =>

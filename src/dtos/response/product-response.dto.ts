@@ -13,7 +13,7 @@ export interface ProductResponse {
   size?: string;
   promoPrice?: number;
   status?: ProductStatusEnum;
-  isActiveStock: boolean;
+  activeLowStock: boolean;
   stock?: number;
   lowStock: number;
   images: ImageResponse[];

@@ -1,4 +1,4 @@
-import { Plus, X } from "lucide-react";
+import { Plus, X, ChevronLeft, ChevronRight } from "lucide-react";
 import styles from "./ImageGallery.module.css";
 
 interface ImageGalleryProps {
@@ -25,11 +25,43 @@ export function ImageGallery({
       <div className={styles.previewContainer}>
         {previews.length > 0 ? (
           <>
+            {previews.length > 1 && (
+              <button
+                className={styles.arrowLeft}
+                onClick={() =>
+                  onSelectImage(
+                    selectedIndex === 0
+                      ? previews.length - 1
+                      : selectedIndex - 1,
+                  )
+                }
+                type="button"
+                aria-label="Imagem anterior"
+              >
+                <ChevronLeft size={25} />
+              </button>
+            )}
             <img
               src={previews[selectedIndex]}
               alt={`Preview ${selectedIndex + 1}`}
               className={styles.mainImage}
             />
+            {previews.length > 1 && (
+              <button
+                className={styles.arrowRight}
+                onClick={() =>
+                  onSelectImage(
+                    selectedIndex === previews.length - 1
+                      ? 0
+                      : selectedIndex + 1,
+                  )
+                }
+                type="button"
+                aria-label="Próxima imagem"
+              >
+                <ChevronRight size={25} />
+              </button>
+            )}
             <button
               className={styles.removeBtn}
               onClick={() => onRemoveImage(selectedIndex)}
@@ -84,10 +116,6 @@ export function ImageGallery({
           </button>
         </div>
       </div>
-
-      <p className={styles.tip}>
-        Dica: use imagens com boa resolução para identificar o produto.
-      </p>
     </div>
   );
 }

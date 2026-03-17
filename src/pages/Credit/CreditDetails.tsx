@@ -117,7 +117,7 @@ export function CreditDetails() {
       setSize(data.size ?? "");
       setLowStock(String(data.lowStock ?? ""));
       setLowStockAlertEnabled(!!data.lowStock && data.lowStock > 0);
-      setStockEnabled(!!data.isActiveStock);
+
       setStock(String(data.stock ?? ""));
       setImageNames((data.images || []).map((img) => img.fileName));
       setImageFiles([]);
@@ -405,7 +405,7 @@ export function CreditDetails() {
       size: size.trim() || undefined,
       promoPrice: promoPrice.trim() ? Number(toDot(promoPrice)) : undefined,
       lowStock: lowStockAlertEnabled ? Number(lowStock || "0") : 0,
-      isActiveStock: stockEnabled,
+
       stock: stockEnabled ? Number(stock || 0) : 0,
       variations: cleanVariations,
       imageIds: isEdit ? existingImageIds : undefined,
@@ -1195,7 +1195,7 @@ export function CreditDetails() {
                             imageUrl={imageUrl}
                             stock={Number(variation.stock)}
                             lowStock={0}
-                            isActiveStock={false}
+
                             available
                             color={variation.color}
                             size={variation.size}

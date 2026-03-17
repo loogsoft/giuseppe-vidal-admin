@@ -89,6 +89,20 @@
   gap: 14px;
 }
 
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  gap: 12px;
+  color: var(--text-muted);
+}
+.emptyIcon {
+  font-size: 52px;
+  color: var(--text-muted);
+  opacity: 0.4;
+}
 .metricCard {
   background: var(--surface);
   border: 1px solid var(--border-default);
@@ -505,7 +519,7 @@
 
 .pageBtnActive {
   background: var(--highlight-primary);
-  color: #1b140e;
+  color: #ffffff;
   border: none;
 }
 

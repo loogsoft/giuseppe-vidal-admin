@@ -23,20 +23,30 @@ export const SupplierService = {
   },
 
   create: async (
-    supplier: SupplierRequestDto,
+    supplier: SupplierRequestDto | FormData,
   ): Promise<SupplierResponseDto> => {
-    const response = await api.post<SupplierResponseDto>(API_URL, supplier);
-
+    let config = {};
+    let body: any = supplier;
+    if (supplier instanceof FormData) {
+      config = { headers: { 'Content-Type': 'multipart/form-data' } };
+    }
+    const response = await api.post<SupplierResponseDto>(API_URL, body, config);
     return response.data;
   },
 
   update: async (
     id: string,
-    supplier: Partial<SupplierRequestDto>,
+    supplier: Partial<SupplierRequestDto> | FormData,
   ): Promise<SupplierResponseDto> => {
+    let config = {};
+    let body: any = supplier;
+    if (supplier instanceof FormData) {
+      config = { headers: { 'Content-Type': 'multipart/form-data' } };
+    }
     const response = await api.patch<SupplierResponseDto>(
       `${API_URL}/${id}`,
-      supplier,
+      body,
+      config,
     );
     return response.data;
   },

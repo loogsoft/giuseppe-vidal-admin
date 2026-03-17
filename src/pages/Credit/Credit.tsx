@@ -210,7 +210,7 @@ export function Credit() {
   }, [products]);
 
   const lowStock = useMemo(() => {
-    return products.filter((p) => p.isActiveStock && (p.stock ?? 0) <= 5)
+    return products.filter((p) => (p.stock ?? 0) <= 5)
       .length;
   }, [products]);
 
@@ -235,7 +235,7 @@ export function Credit() {
           const primaryImage = (p.images || []).find((img) => img.isPrimary);
           const imageUrl = primaryImage?.url || p.images?.[0]?.url || "";
 
-          if (p.isActiveStock && (p.stock ?? 0) === 0) {
+          if ((p.stock ?? 0) === 0) {
             try {
               await MessageService.create({
                 productId: p.id,
@@ -245,7 +245,7 @@ export function Credit() {
                 description: `O produto "${p.name}" foi esgotado. Estoque zerado. Realize a reposição imediatamente.`,
               });
             } catch {}
-          } else if (p.isActiveStock && (p.lowStock ?? 0) > (p.stock ?? 0)) {
+          } else if ((p.lowStock ?? 0) > (p.stock ?? 0)) {
             try {
               await MessageService.create({
                 productId: p.id,
@@ -273,7 +273,7 @@ export function Credit() {
                   });
                 } catch {}
               } else if (
-                p.isActiveStock &&
+                
                 (p.lowStock ?? 0) > Number(v.stock ?? 0)
               ) {
                 try {
@@ -474,7 +474,7 @@ export function Credit() {
                     })),
                 ]}
                 stock={p.stock}
-                isActiveStock={p.isActiveStock}
+
                 available
                 color={p.color}
                 colors={Array.from(

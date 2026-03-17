@@ -24,7 +24,7 @@ type StockLevel = "all" | "ok" | "low" | "critical";
 type SortOption = "alpha" | "priceAsc" | "priceDesc" | "stockAsc" | "stockDesc";
 
 const getStockLevel = (p: ProductResponse): "ok" | "low" | "critical" => {
-  if (!p.isActiveStock || p.stock === undefined) return "ok";
+  if (p.stock === undefined) return "ok";
   if (p.stock === 0) return "critical";
   if (p.stock <= p.lowStock) return "low";
   return "ok";
@@ -66,22 +66,9 @@ export function DiscountStock() {
 
   const totalVendas = useMemo(
     () => stockHistory.reduce((acc, h) => acc + h.quantity, 0),
-    [stockHistory],
+    [stockHistory]
   );
-
-  const faturamento = useMemo(
-    () =>
-      products.reduce(
-        (acc, p) => acc + Number(p.price ?? 0) * (p.stock ?? 0),
-        0,
-      ),
-    [products],
-  );
-
-  const faturamentoFormatted = faturamento.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+  // ...existing code...
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -214,6 +201,15 @@ export function DiscountStock() {
 
   const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
 
+  // Calcula o faturamento total
+  const faturamento = useMemo(() => {
+    return stockHistory.reduce((acc, h) => acc + (h.price || h.variation?.price || 0) * h.quantity, 0);
+  }, [stockHistory]);
+
+  const faturamentoFormatted = useMemo(() => {
+    return faturamento.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }, [faturamento]);
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
@@ -250,7 +246,7 @@ export function DiscountStock() {
         <StatCard
           label="Faturamento"
           value={faturamentoFormatted}
-          sub="Valor em estoque"
+          sub="Valor em vendas"
           icon={<FiDollarSign />}
           iconColor="#ECFDF5"
           iconBackgroundColor="#059669"
@@ -355,18 +351,18 @@ export function DiscountStock() {
                   promoPrice={item.promoPrice}
                   imageUrl={[
                     ...(item.images || []),
-                    ...(item.variations || [])
+                    ...((item.variations || [])
                       .filter((v) => v.imageUrl)
                       .map((v) => ({
-                        url: v.imageUrl!,
+                        url: Array.isArray(v.imageUrl) ? v.imageUrl[0] : v.imageUrl || "",
                         fileName: v.name || "",
                         id: "",
                         isPrimary: false,
-                      })),
+                      })) as any[]),
                   ]}
                   stock={item.stock}
                   lowStock={item.lowStock}
-                  isActiveStock={item.isActiveStock}
+
                   available={item.status === ProductStatusEnum.ACTIVED}
                   color={item.color}
                   colors={Array.from(
@@ -455,9 +451,13 @@ export function DiscountStock() {
                 <FiSearch className={styles.searchIcon} />
                 <input
                   className={styles.searchInput}
-                  placeholder="Buscar no historico..."
+                  type="text"
+                  placeholder="Buscar por responsável, produto ou ID..."
                   value={search}
-                  onChange={(event) => setSearch(event.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
                 />
               </div>
               <CustomSelect
@@ -466,8 +466,8 @@ export function DiscountStock() {
                   label: String(c.value),
                 }))}
                 value={String(pageSize)}
-                onChange={(value) => {
-                  setPageSize(Number(value));
+                onChange={(v: string) => {
+                  setPageSize(Number(v));
                   setPage(1);
                 }}
               />
@@ -475,97 +475,124 @@ export function DiscountStock() {
             <div className={styles.filterActions}>
               <CustomSelect
                 options={[
-                  { value: "period", label: "Periodo" },
-                  { value: "7", label: "Últimos 7 dias" },
-                  { value: "30", label: "Últimos 30 dias" },
+                  { value: "all", label: "Todos" },
+                  { value: "OUT", label: "Saída" },
+                  { value: "IN", label: "Entrada" },
                 ]}
-                value="period"
-                onChange={() => {}}
-              />
-              <CustomSelect
-                options={[
-                  { value: "reason", label: "Motivo" },
-                  { value: "Venda", label: "Venda" },
-                  { value: "Avaria", label: "Avaria" },
-                  { value: "Consumo", label: "Consumo" },
-                ]}
-                value="reason"
+                value={"all"}
                 onChange={() => {}}
               />
             </div>
           </div>
-          <div className={styles.cardGrid}>
+          <div className={styles.table}>
+            <div className={`${styles.row} ${styles.thead}`}>
+              <div>PRODUTO</div>
+              <div>DATA/HORA</div>
+              <div>RESPONSÁVEL</div>
+              <div>VARIAÇÃO</div>
+              <div className={styles.qtdValorCell}>
+                <span>QTD</span>
+                <span>VALOR</span>
+                <span>FORMA DE PAGAMENTO</span>
+              </div>
+              <div>MOTIVO</div>
+              <div>TIPO</div>
+            </div>
+
             {pagedHistoryItems.length === 0 ? (
               <div className={styles.emptyState}>
-                <FiShoppingBag className={styles.emptyIcon} />
-                <h3 className={styles.emptyTitle}>
-                  Nenhuma movimentação registrada
-                </h3>
-                <p className={styles.emptySubtitle}>
-                  O histórico de baixas aparecerá aqui.
-                </p>
+                <FiUser className={styles.emptyIcon} />
+                <div
+                  style={{
+                    fontWeight: 600,
+                    fontSize: 18,
+                    marginBottom: 4,
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  Nenhuma movimentação encontrada
+                </div>
+                <div style={{ fontSize: 14, color: "var(--text-muted)" }}>
+                  Tente ajustar os filtros ou realize uma nova movimentação.
+                </div>
               </div>
             ) : (
-              pagedHistoryItems.map((item) => (
-                <EntityCard
-                  key={item.id}
-                  id={item.id}
-                  type="product"
-                  name={item.variation?.name || ""}
-                  description={`${item.reason} — ${item.responsibleName}`}
-                  category={item.reason as any}
-                  price={0}
-                  imageUrl={[]}
-                  stock={item.quantity}
-                  lowStock={0}
-                  isActiveStock={false}
-                  available={true}
-                  navigateTo=""
-                  status={ProductStatusEnum.ACTIVED}
-                  actionButton={
-                    <>
-                      <div className={styles.historyOwnerBadge}>
-                        <FiUser className={styles.historyOwnerIcon} />
-                        <span>{item.responsibleName}</span>
-                      </div>
-                      <button
-                        className={styles.actionOutlineBtn}
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setVoltarEstoqueItem(item);
-                        }}
-                      >
-                        Voltar ao estoque
-                      </button>
-                    </>
-                  }
-                />
-              ))
+              pagedHistoryItems.map((r) => {
+                const dt = new Date(r.createdAt);
+                const date = dt.toLocaleDateString("pt-BR", {
+                  day: "2-digit",
+                  month: "short",
+                });
+                const time = dt.toLocaleTimeString("pt-BR", {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                });
+                const initials = (r.responsibleName || "?")
+                  .split(" ")
+                  .slice(0, 2)
+                  .map((p: string) => p[0]?.toUpperCase() ?? "")
+                  .join("");
+                return (
+                  <div key={r.id} className={styles.row}>
+                    <div className={styles.idCell}>
+                      {r.productName || r.variation?.name || "-"}
+                    </div>
+                    <div className={styles.dateCell}>
+                      <div>{date}</div>
+                      <div className={styles.muted}>{time}</div>
+                    </div>
+                    <div className={styles.clientCell}>
+                      <div className={styles.avatar}>{initials}</div>
+                      <div className={styles.clientName}>{r.responsibleName || "-"}</div>
+                    </div>
+                    <div className={styles.productsCell}>
+                      {r.variation?.color && (
+                        <span
+                          className={styles.colorDot}
+                          style={{ backgroundColor: r.variation.color }}
+                        />
+                      )}
+                      {r.variation?.size || "-"}
+                    </div>
+                    <div className={styles.qtdValorCell}>
+                      <span className={styles.totalCell}>{r.quantity}x</span>
+                      <span className={styles.valueCell}>
+                        R$
+                        {Number(r.price || r.variation?.price || 0).toLocaleString("pt-BR")}
+                      </span>
+                      <span className={styles.paymentCell}>{r.paymentMethod || "-"}</span>
+                    </div>
+                    <div className={styles.reasonCell}>{r.reason || "-"}</div>
+                    <div>
+                      {r.type === "OUT" ? (
+                        <span className={styles.statusOut}>SAÍDA</span>
+                      ) : (
+                        <span className={styles.statusIn}>ENTRADA</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })
             )}
           </div>
           <div className={styles.tableFooter}>
             <div className={styles.tableSummary}>
-              Mostrando {pagedHistoryItems.length} de {totalResults} baixas
+              Mostrando {pagedHistoryItems.length} de {filteredHistory.length} movimentações
             </div>
             <div className={styles.pagination}>
               <button
-                className={`${styles.pageBtn} ${
-                  currentPage === 1 ? styles.pageBtnDisabled : ""
-                }`}
+                className={`${styles.pageBtn} ${currentPage === 1 ? styles.pageBtnDisabled : ""}`}
                 type="button"
                 onClick={() => setPage(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                aria-label="Pagina anterior"
+                aria-label="Página anterior"
               >
                 ‹
               </button>
               {pages.map((p) => (
                 <button
                   key={p}
-                  className={`${styles.pageBtn} ${
-                    p === currentPage ? styles.pageBtnActive : ""
-                  }`}
+                  className={`${styles.pageBtn} ${p === currentPage ? styles.pageBtnActive : ""}`}
                   type="button"
                   onClick={() => setPage(p)}
                 >
@@ -573,13 +600,11 @@ export function DiscountStock() {
                 </button>
               ))}
               <button
-                className={`${styles.pageBtn} ${
-                  currentPage === totalPages ? styles.pageBtnDisabled : ""
-                }`}
+                className={`${styles.pageBtn} ${currentPage === totalPages ? styles.pageBtnDisabled : ""}`}
                 type="button"
                 onClick={() => setPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
-                aria-label="Proxima pagina"
+                aria-label="Próxima página"
               >
                 ›
               </button>

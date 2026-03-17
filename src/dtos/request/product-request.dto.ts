@@ -3,42 +3,19 @@ import type { ProductStatusEnum } from "../enums/product-status.enum";
 import type { ProductVariationRequestDto } from "./product-variation-request.dto";
 
 export interface ProductRequest {
-
   name: string;
-
   description?: string;
-
   category: ProductCategoryEnum;
-
   status?: ProductStatusEnum;
-
-  price: number;
-
-  color?: string;
-
-  size?: string;
-
-  promoPrice?: number;
-
-
-  // controla se usa variação
+  price: number | null;
+  color?: string | undefined;
+  size?: string | undefined;
+  promoPrice?: number | null;
+  stock?: number | null;
   hasVariations: boolean;
-
-
-  isActiveStock: boolean;
-
-
-  // usado apenas se NÃO tiver variação
-  stock?: number;
-
-
+  activeLowStock: boolean;
   lowStock: number;
-
-
   variations?: ProductVariationRequestDto[];
-
   imageIds?: string[];
-
   supplierId: string;
-
 }

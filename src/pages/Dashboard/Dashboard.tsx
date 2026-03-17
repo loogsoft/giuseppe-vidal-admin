@@ -16,6 +16,7 @@ import {
   FiDollarSign,
   FiSearch,
   FiShoppingCart,
+  FiUsers,
 } from "react-icons/fi";
 import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
 import { useTheme } from "../../contexts/useTheme";
@@ -104,7 +105,10 @@ export function Dashboard() {
     () =>
       periodMovements
         .filter((m) => m.type === "OUT")
-        .reduce((acc, m) => acc + Number(m.price || m.variation?.price || 0), 0),
+        .reduce(
+          (acc, m) => acc + Number(m.price || m.variation?.price || 0),
+          0,
+        ),
     [periodMovements],
   );
   const chartColors = {
@@ -152,7 +156,7 @@ export function Dashboard() {
         setStockIten(data.length);
 
         const low = data.filter(
-          (p) => p.isActiveStock && (p.stock ?? 0) <= p.lowStock,
+          (p) => (p.stock ?? 0) <= p.lowStock,
         );
         setLowStock(low.length);
       };
@@ -206,7 +210,6 @@ export function Dashboard() {
     for (let i = start; i <= end; i++) pages.push(i);
     return pages;
   }, [currentPage, maxPageMovements]);
-
 
   return (
     <div className={styles.page}>
@@ -419,14 +422,21 @@ export function Dashboard() {
           </div>
 
           {paginatedMovements.length === 0 ? (
-            <div
-              style={{
-                padding: "24px",
-                textAlign: "center",
-                color: "var(--text-muted)",
-              }}
-            >
-              Nenhuma movimentação encontrada.
+            <div className={styles.emptyState}>
+              <FiUsers className={styles.emptyIcon} />
+              <div
+                style={{
+                  fontWeight: 600,
+                  fontSize: 18,
+                  marginBottom: 4,
+                  color: "var(--text-secondary)",
+                }}
+              >
+                Nenhuma movimentação encontrada
+              </div>
+              <div style={{ fontSize: 14, color: "var(--text-muted)" }}>
+                Tente ajustar os filtros ou realize uma nova movimentação.
+              </div>
             </div>
           ) : (
             paginatedMovements.map((r) => {

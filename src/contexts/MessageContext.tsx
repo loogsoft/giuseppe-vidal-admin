@@ -43,7 +43,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
         const primaryImage = (p.images || []).find((img: any) => img.isPrimary);
         const imageUrl = primaryImage?.url || p.images?.[0]?.url || "";
         const mainStock = Math.max(0, p.stock ?? 0);
-        if (p.isActiveStock && (p.stock ?? 0) <= 0) {
+        if (Number(p.stock ?? 0) <= 0) {
           try {
             const created = await MessageService.create({
               productId: p.id,
@@ -57,7 +57,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
               toast.error(`O produto "${p.name}" foi esgotado. Estoque zerado.`);
             }
           } catch {}
-        } else if (p.isActiveStock && (p.stock ?? 0) < (p.lowStock ?? 0)) {
+        } else if (Number(p.stock ?? 0) > 0 && Number(p.stock ?? 0) < Number(p.lowStock ?? 0)) {
           try {
             const created = await MessageService.create({
               productId: p.id,
@@ -79,6 +79,7 @@ export function MessageProvider({ children }: { children: ReactNode }) {
             const varImage = v.imageUrl || imageUrl;
             const varName = `${p.name} - ${v.color || ""} ${v.size || ""}`.trim();
             const varStock = Math.max(0, Number(v.stock ?? 0));
+            // Alerta de esgotado para variação
             if (Number(v.stock ?? 0) <= 0) {
               try {
                 const created = await MessageService.create({
@@ -95,7 +96,9 @@ export function MessageProvider({ children }: { children: ReactNode }) {
                   );
                 }
               } catch {}
-            } else if (p.isActiveStock && (p.lowStock ?? 0) > varStock) {
+            }
+            // Alerta de estoque baixo para variação
+            if (Number(v.stock ?? 0) > 0 && varStock < Number(p.lowStock ?? 0)) {
               try {
                 const created = await MessageService.create({
                   productId: p.id,

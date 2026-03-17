@@ -8,6 +8,8 @@ export interface SupplierResponseDto {
   phone?: string;
   location?: string;
   status?: SupplierStatus;
+  imageUrl?: string[] | string;
   avatarColor?: string;
   openDiscountStock?: number;
+  images?: { url: string }[];
 }

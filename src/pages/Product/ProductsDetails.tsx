@@ -11,7 +11,7 @@ import { Save, Plus, Pencil } from "lucide-react";
 import { ImageGallery } from "../../components/ImageGallery";
 import EntityCard from "../../components/EntityCard";
 import { ButtonBack } from "../../components/ButtonBack/ButtonBack";
-import { FiTrash2 } from "react-icons/fi";
+import { FiCreditCard, FiTrash2 } from "react-icons/fi";
 
 type Variation = ProductVariationRequestDto | ProductVariationResponseDto;
 
@@ -54,13 +54,58 @@ export function ProductsDetails() {
   const [color, setColor] = useState("");
   const [size, setSize] = useState("");
   const [lowStock, setLowStock] = useState("5");
-  const [lowStockAlertEnabled, setLowStockAlertEnabled] = useState(true);
-  const [stockEnabled, setStockEnabled] = useState(false);
+  const [activeLowStock, setActiveLowStock] = useState(true);
   const [stock, setStock] = useState("");
   const [supplierId, setSupplierId] = useState("");
   const [imageNames, setImageNames] = useState<string[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+
+  // Formata valor para 2 casas decimais (ex: 100 -> 100,00)
+  const formatCurrency = (value: string) => {
+    const num = value.replace(/[^0-9]/g, "");
+    if (!num) return "";
+    const intValue = parseInt(num, 10);
+    return (intValue / 100).toFixed(2).replace(".", ",");
+  };
+
+  const handlePriceChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = event.target.value.replace(/[^0-9]/g, "");
+    if (!raw) {
+      setPrice("");
+      return;
+    }
+    setPrice(formatCurrency(raw));
+  };
+
+  const handlePromoPriceChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const raw = event.target.value.replace(/[^0-9]/g, "");
+    if (!raw) {
+      setPromoPrice("");
+      return;
+    }
+    setPromoPrice(formatCurrency(raw));
+  };
+
+  const handleVariationPriceChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    let value = event.target.value.replace(/[^0-9,]/g, "");
+    // Se o usuário digitar só números, formata para 2 casas decimais
+    if (/^\d+$/.test(value)) {
+      value = (parseInt(value, 10) / 100).toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    } else if (/^\d+,\d*$/.test(value)) {
+      // Se já tem vírgula, limita para 2 casas decimais
+      const [intPart, decPart] = value.split(",");
+      value = intPart + "," + (decPart ? decPart.slice(0, 2) : "");
+    }
+    setVariationPrice(value);
+  };
   const [existingImageIds, setExistingImageIds] = useState<string[]>([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [saving, setSaving] = useState(false);
@@ -73,7 +118,8 @@ export function ProductsDetails() {
     useState(false);
   const [variationSize, setVariationSize] = useState("");
   const [variationIsActive, setVariationIsActive] = useState(true);
-  const [variationLowStockAlertEnabled, setVariationLowStockAlertEnabled] = useState(false);
+  const [variationLowStockAlertEnabled, setVariationLowStockAlertEnabled] =
+    useState(false);
   const [variationLowStock, setVariationLowStock] = useState("");
   const [variationImageFiles, setVariationImageFiles] = useState<File[]>([]);
   const [variationImagePreviews, setVariationImagePreviews] = useState<
@@ -116,8 +162,7 @@ export function ProductsDetails() {
       setColor(data.color ?? "");
       setSize(data.size ?? "");
       setLowStock(String(data.lowStock ?? ""));
-      setLowStockAlertEnabled(!!data.lowStock && data.lowStock > 0);
-      setStockEnabled(!!data.isActiveStock);
+      setActiveLowStock(!!data.activeLowStock);
       setStock(String(data.stock ?? ""));
       setImageNames((data.images || []).map((img) => img.fileName));
       setImageFiles([]);
@@ -128,7 +173,7 @@ export function ProductsDetails() {
       setProductType(
         hasVariations ? ProductType.VARIATION : ProductType.UNIQUE,
       );
-      // Load variations but clean them to remove response-only fields
+      // Load variations incluindo activeLowStock e lowStock
       const cleanLoadedVariations = (data.variations || []).map((v) => ({
         name: v.name,
         price: v.price,
@@ -146,6 +191,8 @@ export function ProductsDetails() {
               },
             ]
           : undefined,
+        activeLowStock: v.activeLowStock ?? false,
+        lowStock: v.lowStock ?? 0,
       })) as ProductVariationRequestDto[];
       setVariations(cleanLoadedVariations);
     };
@@ -227,8 +274,18 @@ export function ProductsDetails() {
       v.stock !== undefined && v.stock !== null ? String(v.stock) : "",
     );
     setVariationIsActive(v.isActive ?? true);
-    setVariationLowStockAlertEnabled('lowStock' in v && !!(v as any).lowStock && (v as any).lowStock > 0);
-    setVariationLowStock('lowStock' in v && (v as any).lowStock !== undefined && (v as any).lowStock !== null ? String((v as any).lowStock) : "");
+    setVariationLowStockAlertEnabled(
+      "activeLowStock" in v
+        ? Boolean((v as any).activeLowStock)
+        : Boolean((v as any).lowStock && (v as any).lowStock > 0),
+    );
+    setVariationLowStock(
+      "lowStock" in v &&
+        (v as any).lowStock !== undefined &&
+        (v as any).lowStock !== null
+        ? String((v as any).lowStock)
+        : "",
+    );
     const imgs = (v.images || []) as any[];
     setVariationImageFiles([]);
     setVariationImagePreviews(
@@ -311,12 +368,23 @@ export function ProductsDetails() {
 
     const newVariation: ProductVariationRequestDto = {
       name: `${variationColor.trim()} ${variationSize.trim()}`,
-      price: variationPrice.trim() ? Number(toDot(variationPrice)) : undefined,
-      stock: Number(variationStock),
+      price: variationPrice.trim()
+        ? Number(variationPrice.replace(",", "."))
+        : 0,
+      stock:
+        variationStock && !isNaN(Number(variationStock))
+          ? Number(variationStock)
+          : 0,
       color: variationColor.trim(),
       size: variationSize.trim(),
       isActive: variationIsActive,
-      lowStock: variationLowStockAlertEnabled ? Number(variationLowStock || "0") : 0,
+      activeLowStock: variationLowStockAlertEnabled,
+      lowStock:
+        variationLowStockAlertEnabled &&
+        variationLowStock &&
+        !isNaN(Number(variationLowStock))
+          ? Number(variationLowStock)
+          : 0,
       images:
         variationImageFiles.length > 0
           ? variationImageFiles
@@ -361,10 +429,8 @@ export function ProductsDetails() {
         alert("Cor do produto é obrigatória");
         return;
       }
-      if (stockEnabled && !stock.trim()) {
-        alert(
-          "Quantidade em estoque é obrigatória quando controle de estoque está ativo",
-        );
+      if (!stock.trim()) {
+        alert("Quantidade em estoque é obrigatória");
         return;
       }
     }
@@ -374,24 +440,29 @@ export function ProductsDetails() {
     const cleanVariations =
       variations.length > 0
         ? variations.map((variation) => {
-            let priceValue: number | undefined = undefined;
-            if (typeof variation.price === "string") {
-              priceValue = variation.price.trim()
-                ? Number(toDot(variation.price))
-                : undefined;
-            } else if (typeof variation.price === "number") {
-              priceValue = variation.price;
+            let priceValue: number = 0;
+            if (variation.price !== undefined && variation.price !== null) {
+              priceValue =
+                typeof variation.price === "string"
+                  ? Number((variation.price as string).replace(",", "."))
+                  : Number(variation.price);
             }
-
             return {
               name: variation.name,
               price: priceValue,
-              stock: Number(variation.stock) || 0,
+              stock:
+                variation.stock !== undefined && variation.stock !== null
+                  ? Number(variation.stock)
+                  : 0,
               isActive: variation.isActive ?? true,
               color: variation.color,
               size: variation.size,
               images: variation.images,
-              lowStock: variationLowStockAlertEnabled ? Number(variationLowStock || "0") : 0,
+              activeLowStock: !!variation.activeLowStock,
+              lowStock:
+                variation.lowStock !== undefined && variation.lowStock !== null
+                  ? Number(variation.lowStock)
+                  : 0,
             };
           })
         : undefined;
@@ -401,17 +472,29 @@ export function ProductsDetails() {
       description: description.trim() || undefined,
       category,
       status,
-      price: Number(toDot(price)),
-      color: color.trim() || undefined,
-      size: size.trim() || undefined,
-      promoPrice: promoPrice.trim() ? Number(toDot(promoPrice)) : undefined,
-      lowStock: lowStockAlertEnabled ? Number(lowStock || "0") : 0,
-      isActiveStock: stockEnabled,
-      stock: stockEnabled ? Number(stock || 0) : 0,
+      promoPrice: promoPrice.trim() ? Number(toDot(promoPrice)) : 0,
+      activeLowStock,
+      lowStock:
+        activeLowStock && lowStock && !isNaN(Number(lowStock))
+          ? Number(lowStock)
+          : 0,
       variations: cleanVariations,
       imageIds: isEdit ? existingImageIds : undefined,
       supplierId: supplierId.trim() || undefined,
     } as ProductRequest;
+
+    if (productType === ProductType.UNIQUE) {
+      payload.price = price.trim() ? Number(toDot(price)) : 0;
+      payload.color = color.trim() || undefined;
+      payload.size = size.trim() || undefined;
+      payload.stock = stock && !isNaN(Number(stock)) ? Number(stock) : 0;
+    } else if (productType === ProductType.VARIATION) {
+      payload.price = null;
+      payload.color = undefined;
+      payload.size = undefined;
+      payload.stock = null;
+      payload.promoPrice = null;
+    }
 
     try {
       setSaving(true);
@@ -434,6 +517,7 @@ export function ProductsDetails() {
   const actionLabel = isEdit ? "Salvar alterações" : "Criar produto";
   const loadingLabel = isEdit ? "Salvando..." : "Criando...";
 
+  const SIZES = ["P", "M", "G", "GG", "XG", "36", "38", "40", "42", "44", "46"];
   return (
     <div className={styles.page}>
       <input
@@ -488,16 +572,18 @@ export function ProductsDetails() {
       </div>
 
       <div className={styles.content}>
-        <aside className={styles.imageGalleryAside}>
-          <ImageGallery
-            previews={imagePreviews}
-            selectedIndex={selectedImageIndex}
-            imageNames={imageNames}
-            onSelectImage={setSelectedImageIndex}
-            onAddImages={onPickImages}
-            onRemoveImage={onRemoveImage}
-          />
-        </aside>
+        {productType === ProductType.UNIQUE && ( 
+          <aside className={styles.imageGalleryAside}>
+            <ImageGallery
+              previews={imagePreviews}
+              selectedIndex={selectedImageIndex}
+              imageNames={imageNames}
+              onSelectImage={setSelectedImageIndex}
+              onAddImages={onPickImages}
+              onRemoveImage={onRemoveImage}
+            />
+          </aside>)
+        }
 
         <div className={styles.formColumn} style={{ marginBottom: 40 }}>
           <section className={styles.panel}>
@@ -756,7 +842,7 @@ export function ProductsDetails() {
                       )}
                     </div>
 
-                    <label className={styles.field}>
+                    {/* <label className={styles.field}>
                       <span className={styles.label}>Tamanho</span>
                       <input
                         className={styles.input}
@@ -764,7 +850,21 @@ export function ProductsDetails() {
                         value={size}
                         onChange={(event) => setSize(event.target.value)}
                       />
-                    </label>
+                    </label> */}
+                    <div className={styles.fieldGroup}>
+                      <label className={styles.label}>TAMANHO</label>
+                      <select
+                        className={styles.select}
+                        value={size}
+                        onChange={(e) => setSize(e.target.value)}
+                      >
+                        {SIZES.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div className={styles.row2}>
@@ -774,82 +874,63 @@ export function ProductsDetails() {
                         className={styles.input}
                         placeholder="0,00"
                         value={price}
-                        onChange={(event) => setPrice(event.target.value)}
+                        onChange={handlePriceChange}
                       />
                     </label>
                     <label className={styles.field}>
                       <span className={styles.label}>Preço promocional</span>
                       <input
                         className={styles.input}
-                        placeholder="0,00"
-                        value={promoPrice}
-                        onChange={(event) => setPromoPrice(event.target.value)}
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
                       />
                     </label>
                   </div>
 
-                  <div className={styles.field}>
-                    <div className={styles.fieldHeader}>
-                      <span className={styles.label}>Controle de estoque</span>
-                      <button
-                        type="button"
-                        className={`${styles.toggleSwitch} ${
-                          stockEnabled ? styles.toggleSwitchActive : ""
-                        }`}
-                        onClick={() => setStockEnabled(!stockEnabled)}
-                      >
-                        <span className={styles.toggleSlider} />
-                      </button>
-                    </div>
-                  </div>
+                  <div className={styles.row2}>
+                    <label className={styles.field}>
+                      <span className={styles.label}>Estoque</span>
+                      <input
+                        className={styles.input}
+                        placeholder="0"
+                        value={stock}
+                        onChange={(e) => setStock(e.target.value)}
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                      />
+                    </label>
 
-                  {stockEnabled && (
-                    <div className={styles.row2}>
-                      <label className={styles.field}>
-                        <span className={styles.label}>Quantidade</span>
+                    <div className={styles.field}>
+                      <div className={styles.fieldHeader}>
+                        <span className={styles.label}>
+                          Estoque baixo (alerta)
+                        </span>
+                        <button
+                          type="button"
+                          className={`${styles.toggleSwitch} ${
+                            activeLowStock ? styles.toggleSwitchActive : ""
+                          }`}
+                          onClick={() => setActiveLowStock(!activeLowStock)}
+                        >
+                          <span className={styles.toggleSlider} />
+                        </button>
+                      </div>
+                      {activeLowStock && (
                         <input
                           className={styles.input}
                           placeholder="0"
-                          value={stock}
-                          onChange={(event) => setStock(event.target.value)}
+                          value={lowStock}
+                          onChange={(event) => setLowStock(event.target.value)}
                         />
-                      </label>
-
-                      <div className={styles.field}>
-                        <div className={styles.fieldHeader}>
-                          <span className={styles.label}>
-                            Estoque baixo (alerta)
-                          </span>
-                          <button
-                            type="button"
-                            className={`${styles.toggleSwitch} ${
-                              lowStockAlertEnabled
-                                ? styles.toggleSwitchActive
-                                : ""
-                            }`}
-                            onClick={() =>
-                              setLowStockAlertEnabled(!lowStockAlertEnabled)
-                            }
-                          >
-                            <span className={styles.toggleSlider} />
-                          </button>
-                        </div>
-                        {lowStockAlertEnabled && (
-                          <input
-                            className={styles.input}
-                            placeholder="0"
-                            value={lowStock}
-                            onChange={(event) =>
-                              setLowStock(event.target.value)
-                            }
-                          />
-                        )}
-                      </div>
+                      )}
                     </div>
-                  )}
+                  </div>
                 </>
               )}
-
             </div>
           </section>
 
@@ -997,11 +1078,12 @@ export function ProductsDetails() {
                               </span>
                               <input
                                 className={styles.input}
-                                placeholder="0,00"
-                                value={variationPrice}
-                                onChange={(event) =>
-                                  setVariationPrice(event.target.value)
-                                }
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                placeholder="0.00"
+                                value={price}
+                                onChange={(e) => setPrice(e.target.value)}
                               />
                             </label>
                             <label className={styles.field}>
@@ -1010,18 +1092,34 @@ export function ProductsDetails() {
                                 className={styles.input}
                                 placeholder="0"
                                 value={variationStock}
-                                onChange={(event) =>
-                                  setVariationStock(event.target.value)
+                                onChange={(e) =>
+                                  setVariationStock(e.target.value)
                                 }
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                               />
                             </label>
-                            <div className={styles.field} style={{ minWidth: 180 }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                                <span className={styles.label}>Alerta de estoque</span>
+                            <div
+                              className={styles.field}
+                              style={{ minWidth: 180 }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 8,
+                                  marginBottom: 4,
+                                }}
+                              >
+                                <span className={styles.label}>
+                                  Alerta de estoque
+                                </span>
                                 <button
                                   type="button"
                                   className={`${styles.toggleSwitch} ${variationLowStockAlertEnabled ? styles.toggleSwitchActive : ""}`}
-                                  onClick={() => setVariationLowStockAlertEnabled((v) => !v)}
+                                  onClick={() =>
+                                    setVariationLowStockAlertEnabled((v) => !v)
+                                  }
                                   style={{ marginLeft: 8 }}
                                 >
                                   <span className={styles.toggleSlider} />
@@ -1032,7 +1130,9 @@ export function ProductsDetails() {
                                   className={styles.input}
                                   placeholder="5"
                                   value={variationLowStock}
-                                  onChange={(e) => setVariationLowStock(e.target.value)}
+                                  onChange={(e) =>
+                                    setVariationLowStock(e.target.value)
+                                  }
                                   style={{ marginTop: 4 }}
                                 />
                               )}
@@ -1192,11 +1292,20 @@ export function ProductsDetails() {
                             }
                             description={undefined}
                             category={category}
-                            price={variation.price ?? 0}
+                            price={
+                              variation.price !== undefined &&
+                              variation.price !== null
+                                ? Number(variation.price)
+                                : 0
+                            }
                             imageUrl={imageUrl}
-                            stock={Number(variation.stock)}
+                            stock={
+                              variation.stock !== undefined &&
+                              variation.stock !== null
+                                ? Number(variation.stock)
+                                : 0
+                            }
                             lowStock={0}
-                            isActiveStock={false}
                             available
                             color={variation.color}
                             size={variation.size}

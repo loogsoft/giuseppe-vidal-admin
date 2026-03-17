@@ -373,7 +373,6 @@ export function OutOfStock() {
                     })),
                 ]}
                 stock={p.stock}
-                isActiveStock={p.isActiveStock}
                 available
                 color={p.color}
                 colors={Array.from(

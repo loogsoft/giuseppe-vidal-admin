@@ -1,6 +1,7 @@
 export type SupplierStatus = "active" | "inactive";
 
 export interface SupplierRequestDto {
+  id: string;
   name: string;
   category?: string;
   email?: string;

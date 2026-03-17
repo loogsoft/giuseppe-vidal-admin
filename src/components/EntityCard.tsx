@@ -38,7 +38,6 @@ type ProductProps = BaseProps & {
   imageUrl: ImageResponse[];
   stock: number | undefined;
   lowStock: number;
-  isActiveStock: boolean;
   available: boolean;
   color?: string;
   colors?: string[];
@@ -61,6 +60,7 @@ type SupplierProps = BaseProps & {
   isActive: boolean;
   initials: string;
   avatarColor?: string;
+  imageUrl: { url: string; id?: string; publicId?: string }[];
 };
 
 type Props = ProductProps | SupplierProps;
@@ -98,19 +98,72 @@ export default function EntityCard(props: Props) {
       ? ({ backgroundColor: props.avatarColor } as CSSProperties)
       : undefined;
     const statusLabel = props.isActive ? "ATIVO" : "INATIVO";
+    const images = props.imageUrl;
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const hasMultipleImages = images.length > 1;
+    const supplierImageUrl = images.length > 0 ? images[currentImageIndex].url : "";
+    const handlePrevImage = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    };
+    const handleNextImage = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    };
     return (
       <div
         className={`${styles.card} ${styles.supplierCard}`}
         onClick={() => props.onEdit?.(props.id)}
       >
         <div className={`${styles.media} ${styles.supplierMedia}`}>
-          <div
-            className={`${styles.avatar} ${styles.supplierAvatar}`}
-            style={supplierAvatarStyle}
-          >
-            <span className={styles.avatarText}>{props.initials}</span>
-          </div>
-
+          {supplierImageUrl ? (
+            <>
+              <img
+                src={supplierImageUrl}
+                alt={props.name}
+                className={styles.image}
+              />
+              {hasMultipleImages && (
+                <>
+                  <button
+                    className={styles.imageNavBtn + " " + styles.imageNavBtnLeft}
+                    type="button"
+                    aria-label="Imagem anterior"
+                    onClick={handlePrevImage}
+                  >
+                    <FiChevronLeft />
+                  </button>
+                  <button
+                    className={styles.imageNavBtn + " " + styles.imageNavBtnRight}
+                    type="button"
+                    aria-label="Próxima imagem"
+                    onClick={handleNextImage}
+                  >
+                    <FiChevronRight />
+                  </button>
+                  <div className={styles.imageIndicators}>
+                    {images.map((_, index) => (
+                      <span
+                        key={index}
+                        className={`${styles.imageIndicator} ${
+                          index === currentImageIndex
+                            ? styles.imageIndicatorActive
+                            : ""
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            <div
+              className={`${styles.avatar} ${styles.supplierAvatar}`}
+              style={supplierAvatarStyle}
+            >
+              <span className={styles.avatarText}>{props.initials}</span>
+            </div>
+          )}
           <div className={styles.cardActions}>
             <button
               className={styles.iconBtn}
@@ -189,10 +242,12 @@ export default function EntityCard(props: Props) {
   const hasMultipleImages = images.length > 1;
   const productImageUrl = images[currentImageIndex]?.url || "";
 
-
   // Sempre tratar como detalhado: se não houver variations, cria uma variação "fake" com os dados principais
   let variations: any[] = [];
-  if (Array.isArray((props as any).variations) && (props as any).variations.length > 0) {
+  if (
+    Array.isArray((props as any).variations) &&
+    (props as any).variations.length > 0
+  ) {
     variations = (props as any).variations;
   }
   const [showVariations, setShowVariations] = useState(false);
@@ -207,11 +262,10 @@ export default function EntityCard(props: Props) {
     setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
   // Verifica se o produto está esgotado (sem variações) ou se todas as variações estão esgotadas
-  const isSoldOut = props.isActiveStock && (
-    (Array.isArray(variations) && variations.length > 0)
-      ? variations.every(v => (v.stock ?? 0) === 0)
-      : (props.stock ?? 0) === 0
-  );
+  const isSoldOut =
+    Array.isArray(variations) && variations.length > 0
+      ? variations.every((v) => (v.stock ?? 0) === 0)
+      : (props.stock ?? 0) === 0;
 
   return (
     <div
@@ -221,8 +275,7 @@ export default function EntityCard(props: Props) {
       }
     >
       <div className={`${styles.media} ${styles.productMedia}`}>
-        {props.isActiveStock &&
-        props.stock !== undefined &&
+        {props.stock !== undefined &&
         props.stock > 0 &&
         props.stock <= props.lowStock ? (
           <div className={styles.lowStock}>ESTOQUE BAIXO</div>
@@ -345,7 +398,7 @@ export default function EntityCard(props: Props) {
               {currencyBRL(Number(props.price))}
             </div>
           )}
-          {props.isActiveStock && props.lowStock > 0 && (
+          {props.lowStock > 0 && (
             <div className={styles.metaItem}>
               <FiBox className={styles.metaIcon} />
               {`Alerta de estoque: ${props.lowStock}`}
@@ -358,7 +411,7 @@ export default function EntityCard(props: Props) {
                 type="button"
                 className={styles.variationToggle}
                 tabIndex={-1}
-                onClick={e => {
+                onClick={(e) => {
                   e.stopPropagation();
                   setShowVariations((v) => !v);
                 }}
@@ -367,7 +420,12 @@ export default function EntityCard(props: Props) {
               >
                 <FiLayers className={styles.variationToggleIcon} />
                 <span className={styles.variationToggleLabel}>Variações</span>
-                <FiChevronDown className={styles.variationChevron} style={{ transform: showVariations ? "rotate(180deg)" : undefined }} />
+                <FiChevronDown
+                  className={styles.variationChevron}
+                  style={{
+                    transform: showVariations ? "rotate(180deg)" : undefined,
+                  }}
+                />
               </button>
               {showVariations && (
                 <div className={styles.variationList} id="variation-list">
@@ -375,13 +433,15 @@ export default function EntityCard(props: Props) {
                     <div className={styles.variationCard} key={v.id || i}>
                       <div className={styles.variationCardRow}>
                         <span className={styles.variationLabel}>
-                          Tamanho: {" "}
+                          Tamanho:{" "}
                           <span className={styles.variationValue}>
                             {v.size || "-"}
                           </span>
                         </span>
                         <span className={styles.variationColors}>
-                          {(v.colors && Array.isArray(v.colors) && v.colors.length > 0
+                          {(v.colors &&
+                          Array.isArray(v.colors) &&
+                          v.colors.length > 0
                             ? v.colors
                             : v.color
                               ? [v.color]
@@ -398,7 +458,7 @@ export default function EntityCard(props: Props) {
                       </div>
                       <div className={styles.variationCardRow}>
                         <span className={styles.variationStock}>
-                          Estoque: {" "}
+                          Estoque:{" "}
                           <span className={styles.variationValue}>
                             {v.stock ?? 0}
                           </span>
@@ -441,13 +501,13 @@ export default function EntityCard(props: Props) {
                   </span>
                 </div>
               )}
-              {props.isActiveStock && props.stock !== undefined && (
+              {props.stock !== undefined && (
                 <div className={styles.metaItem}>
                   <FiPackage className={styles.metaIcon} />
                   {`Estoque: ${props.stock}`}
                 </div>
               )}
-              {props.isActiveStock && (props.stock ?? 0) === 0 && (
+              {(props.stock ?? 0) === 0 && (
                 <div className={styles.zeroStockBadge}>⚠ Produto esgotado</div>
               )}
             </>

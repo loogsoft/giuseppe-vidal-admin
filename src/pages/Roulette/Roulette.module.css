@@ -1,0 +1,255 @@
+.rouletteRoot {
+  padding: 30px;
+  font-family: Inter, sans-serif;
+  background: #F5F6F7;
+  min-height: 100vh;
+  width: 100%;
+}
+.tabBox {
+  display: flex;
+  background: #fff;
+  border-radius: 32px;
+  width: 380px;
+  height: 40px;
+  align-items: center;
+  margin-bottom: 32px;
+  box-shadow: 0 1px 4px #0001;
+}
+.tabBtn {
+  flex: 1;
+  height: 35px;
+  border: none;
+  background: transparent;
+  color: #B0B0B0;
+  font-weight: 500;
+  font-size: 16px;
+  border-radius: 32px;
+  cursor: pointer;
+  z-index: 2;
+  transition: background 0.2s, color 0.2s;
+}
+.tabBtnActive {
+  composes: tabBtn;
+  background: #FFD54F;
+  color: #fff;
+}
+.productsBox {
+  margin-bottom: 32px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  padding: 0;
+  overflow: hidden;
+}
+.productsHeader {
+  font-weight: 700;
+  font-size: 22px;
+  color: #222;
+  padding: 24px 24px 10px 24px;
+}
+.productsTableWrap {
+  width: 100%;
+  overflow-x: auto;
+}
+.productsTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+.productsTableHeadRow th {
+  background: #F5F6F7;
+  color: #888;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 12px 8px;
+  text-align: left;
+}
+.productsTableRow td,
+.productsTableRowAlt td {
+  padding: 12px 8px;
+}
+.productsTableRow {
+  background: #fff;
+}
+.productsTableRowAlt {
+  background: #FAFAFA;
+}
+.productsTableCellName {
+  font-weight: 600;
+}
+.productsTableImg {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.productsTableStatusActive {
+  color: #388e3c;
+  font-weight: 600;
+}
+.productsTableStatusInactive {
+  color: #b71c1c;
+  font-weight: 600;
+}
+.productsTableActions {
+  padding: 12px 4px;
+  min-width: 90px;
+}
+.productsTableEmpty {
+  color: #888;
+  text-align: center;
+  padding: 24px;
+}
+.featuredBox {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.featuredTitle {
+  margin-top: 0;
+}
+.featuredInputs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.featuredInput {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+.featuredAddBtn {
+  background: #FFC107;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.featuredAddBtn:hover {
+  background: #FFB300;
+}
+.featuredList {
+  display: flex;
+  gap: 20px;
+}
+.featuredCard {
+  width: 180px;
+  border-radius: 10px;
+  padding: 10px;
+  position: relative;
+  background: #fff;
+  box-shadow: 0 1px 4px #FFD54F22;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.featuredCardRemoveBtn {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  color: #b71c1c;
+  transition: color 0.18s;
+}
+.featuredCardRemoveBtn:hover {
+  color: #ff0000;
+}
+.featuredCardImg {
+  width: 100%;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+.featuredCardName {
+  font-weight: 600;
+  font-size: 14px;
+  margin: 10px 0 4px;
+}
+.featuredCardDesc {
+  font-size: 12px;
+  color: #777;
+}
+.previewBox {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  text-align: center;
+}
+.previewBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  color: #FFD54F;
+  border: none;
+  font-weight: 700;
+  font-size: 16px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  box-shadow: none;
+  padding: 0 12px;
+  height: 40px;
+  text-decoration: none;
+  transition: background 0.18s, color 0.18s;
+}
+.previewBtn:hover {
+  background: #FFF8E1;
+  color: #FFB300;
+}
+.previewTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #222;
+}
+.previewCanvas {
+  margin-top: 10px;
+}
+.previewEmptyMsg {
+  margin-top: 20px;
+  color: #bbb;
+  font-size: 15px;
+}
+.previewInfo {
+  font-size: 12px;
+  color: #999;
+  margin-top: 10px;
+}
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 4px 12px;
+  border: 1.5px solid #FFD54F;
+  color: #FFD54F;
+  background: #fff;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border 0.18s;
+}
+.actionBtn:hover {
+  background: #FFD54F;
+  color: #fff;
+}
+.actionBtn.delete {
+  border: 1.5px solid #b71c1c;
+  color: #b71c1c;
+}
+.actionBtn.delete:hover {
+  background: #b71c1c;
+  color: #fff;
+}
+.actionBtn svg {
+  margin-right: 2px;
+}
