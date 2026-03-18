@@ -16,9 +16,10 @@ import { useMessageContext } from "./contexts/MessageContext";
 import Roleta from "./pages/Roulette/Roulette";
 import { Credit } from "./pages/Credit/Credit";
 import { CreditDetails } from "./pages/Credit/CreditDetails";
+import RegisterCompany from "./pages/registerCompany/RegisterCompany";
 
 export default function App() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const { checkStockAndNotify } = useMessageContext();
 
   useEffect(() => {
@@ -27,13 +28,20 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]);
 
+  if (loading) {
+    return
+  }
+
   return (
     <Routes>
       <Route
         path="/login"
         element={isAuthenticated ? <Navigate to="/dashboard" /> : <Login />}
       />
-
+      <Route
+        path="/register-company"
+        element={<RegisterCompany />}
+      />
       <Route
         element={
           isAuthenticated ? <DashboardLayout /> : <Navigate to="/login" />

@@ -2,7 +2,7 @@ import type { FormEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import styles from "./Login.module.css";
 import { FiEye, FiEyeOff, FiArrowRight } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../../contexts/useAuth";
 import { UserService } from "../../service/User.service";
 import logoLight from "../../assets/logo-preta.png";
@@ -19,7 +19,7 @@ export default function Login() {
     "Erro ao processar sua solicitacao. Tente novamente em alguns instantes. Se o problema persistir, entre em contato com o suporte.";
   const supportPhone = "64999663524";
   const supportMessage =
-    "Ola! Aqui e do Gerenciamento de Estoque Giuseppe Vidal. Estou com um problema ao acessar o painel, podem me ajudar?";
+    "Ola! Aqui e do Gerenciamento de Estoque LOOG SYSTEM. Estou com um problema ao acessar o painel, podem me ajudar?";
   const supportUrl = `https://wa.me/${supportPhone}?text=${encodeURIComponent(
     supportMessage,
   )}`;
@@ -151,7 +151,10 @@ export default function Login() {
 
   function handleCodePaste(event: React.ClipboardEvent<HTMLInputElement>) {
     event.preventDefault();
-    const pasted = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+    const pasted = event.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, 6);
     if (!pasted) return;
     const next = [...code];
     for (let i = 0; i < 6; i++) {
@@ -226,7 +229,9 @@ export default function Login() {
                   />
                 </div>
 
-                <label className={styles.label} style={{ marginTop: 24 }}>Senha</label>
+                <label className={styles.label} style={{ marginTop: 24 }}>
+                  Senha
+                </label>
 
                 <div className={styles.inputWrap}>
                   <input
@@ -273,7 +278,21 @@ export default function Login() {
                   )}
                 </button>
 
-                <div className={styles.copy}>© 2026 GIUSEPPE VIDAL.</div>
+                <div style={{ textAlign: "center", marginTop: 16 }}>
+                  <span>Não possui conta? </span>
+                  <Link
+                    to="/register-company"
+                    style={{
+                      color: "#2b6cee",
+                      fontWeight: 600,
+                      textDecoration: "underline",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Criar!
+                  </Link>
+                </div>
+                <div className={styles.copy}>© 2026 LOOG SYSTEM.</div>
               </>
             ) : (
               <div className={styles.verifyWrap}>
