@@ -22,7 +22,7 @@ export const PrizesService = {
     return response.data;
   },
 
-  async remove(id: string) {
+  async delete(id: string) {
     await api.delete(`/prizes/${id}`);
   },
 };

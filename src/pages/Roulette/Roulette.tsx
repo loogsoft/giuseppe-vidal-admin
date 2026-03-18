@@ -1,75 +1,178 @@
-import { useState, useRef, useEffect } from "react";
+
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { PrizesService } from "../../service/prizes.service";
 import type { PrizeRequestDto } from "../../dtos/request/prize-request.dto";
+import type { PrizeResponseDto } from "../../dtos/response/prize-response.dto";
+import styles from "./Roulette.module.css";
+import { FiTrash2 } from "react-icons/fi";
+import { Edit2 } from "lucide-react";
+import { ConfirmDeleteModal } from "../../components/ConfirmDeleteModal";
+import { ProductService } from "../../service/Product.service";
+import type { ProductResponse } from "../../dtos/response/product-response.dto";
+import EntityCard from "../../components/EntityCard";
+import { CustomSelect } from "../../components/CustomSelect/CustomSelect";
+import { FiSearch, FiFilter } from "react-icons/fi";
+import { FilterModal } from "../../components/FilterModal";
+import type { CategoryKey } from "../../types/Product-type";
 
-type Product = {
-  name: string;
-  description: string;
-  price: string;
-  image: string;
-  tag: string;
-};
+// Declarar products/setProducts ANTES de qualquer uso
+const useProductsState = () => useState<ProductResponse[]>([]);
+
 
 export default function RouletteAdmin() {
-    const [editingIndex, setEditingIndex] = useState<number | null>(null);
-    const [editValues, setEditValues] = useState<Partial<PrizeRequestDto>>({});
-    const handleEditClick = (idx: number) => {
-      setEditingIndex(idx);
-      setEditValues({ ...prizesBack[idx] });
-    };
+  const [products, setProducts] = useProductsState();
 
-    const handleEditChange = (field: keyof PrizeRequestDto, value: any) => {
-      setEditValues((prev) => ({ ...prev, [field]: value }));
-    };
 
-    const handleEditCancel = () => {
-      setEditingIndex(null);
-      setEditValues({});
-    };
 
-    const handleEditSave = async () => {
-      if (editingIndex === null) return;
-      // Aqui você pode chamar o service de update se existir
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [editValues, setEditValues] = useState<Partial<PrizeRequestDto>>({});
+  const [createValues, setCreateValues] = useState<"new" | "not">("not");
+
+
+
+  const [query, setQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12);
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [activeCat, setActiveCat] = useState<CategoryKey>("all");
+  type SortOption = "price-asc" | "price-desc" | "name-asc" | null;
+  const [filters, setFilters] = useState<{
+    minPrice: string;
+    maxPrice: string;
+    category: CategoryKey;
+    sortBy: SortOption;
+  }>({
+    minPrice: "",
+    maxPrice: "",
+    category: "all",
+    sortBy: null,
+  });
+
+  const CATEGORIES: { key: CategoryKey; label: string }[] = useMemo(
+    () => [
+      { key: "all", label: `Todos ${products.length}` },
+      { key: "shirt", label: "Camisa" },
+      { key: "tshirt", label: "Camiseta" },
+      { key: "polo", label: "Polo" },
+      { key: "shorts", label: "Shorts" },
+      { key: "jacket", label: "Jaqueta" },
+      { key: "pants", label: "Calça" },
+      { key: "dress", label: "Vestido" },
+      { key: "sweater", label: "Suéter" },
+      { key: "hoodie", label: "Moletom" },
+      { key: "underwear", label: "Cueca" },
+      { key: "footwear", label: "Calçado" },
+      { key: "belt", label: "Cinto" },
+      { key: "wallet", label: "Carteira" },
+      { key: "sunglasses", label: "Óculos" },
+    ],
+    [products.length],
+  );
+  const LISTPAG = useMemo(() => [{ value: 12 }, { value: 24 }, { value: 48 }, { value: 100 }], []);
+
+  const filtered = useMemo(() => {
+    let current = products;
+    const categoryToFilter = filters.category !== "all" ? filters.category : activeCat;
+    if (categoryToFilter !== "all") {
+      current = current.filter((p: ProductResponse) => {
+        return String(p.category) === String(categoryToFilter);
+        return false;
+      });
+    }
+    const trimmed = query.trim().toLowerCase();
+    if (trimmed) {
+      current = current.filter(
+        (p: ProductResponse) =>
+          p.name.toLowerCase().includes(trimmed) ||
+          (p.id && p.id.toLowerCase().includes(trimmed)),
+      );
+    }
+    if (filters.minPrice) {
+      const min = parseFloat(filters.minPrice);
+      current = current.filter((p: ProductResponse) => Number(p.price) >= min);
+    }
+    if (filters.maxPrice) {
+      const max = parseFloat(filters.maxPrice);
+      current = current.filter((p: ProductResponse) => Number(p.price) <= max);
+    }
+    if (filters.sortBy === "price-asc") {
+      current = [...current].sort((a: ProductResponse, b: ProductResponse) => Number(a.price) - Number(b.price));
+    } else if (filters.sortBy === "price-desc") {
+      current = [...current].sort((a: ProductResponse, b: ProductResponse) => Number(b.price) - Number(a.price));
+    } else if (filters.sortBy === "name-asc") {
+      current = [...current].sort((a: ProductResponse, b: ProductResponse) => a.name.localeCompare(b.name));
+    }
+    return current;
+  }, [products, query, filters, activeCat]);
+  const total = filtered.length;
+  const maxPage = Math.max(1, Math.ceil(total / pageSize));
+  const currentPage = Math.min(page, maxPage);
+  const paginated = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, currentPage, pageSize]);
+  const pages = Array.from({ length: maxPage }, (_, index) => index + 1);
+
+  const handleEditClick = (idx: number) => {
+    setEditingIndex(idx);
+    setEditValues({ ...prizesBack[idx] });
+  };
+
+  const handleEditChange = (field: keyof PrizeRequestDto, value: any) => {
+    setEditValues((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleEditCancel = () => {
+    setEditingIndex(null);
+    setEditValues({});
+  };
+
+  const handleEditSave = async () => {
+    if (editingIndex === null) return;
+    const prize = prizesBack[editingIndex] as PrizeResponseDto & { id?: string };
+    if (!('id' in prize) || !prize.id) return;
+    try {
+      // Garantir que editValues está completo para PrizeRequestDto
+      const data: PrizeRequestDto = {
+        name: editValues.name || prize.name,
+        description: editValues.description ?? prize.description ?? "",
+        imageUrl: editValues.imageUrl ?? prize.imageUrl ?? "",
+        quantity: editValues.quantity ?? prize.quantity,
+        probability: editValues.probability ?? prize.probability,
+        active: editValues.active ?? prize.active,
+      };
+      await PrizesService.update(prize.id, data);
       const updated = [...prizesBack];
-      updated[editingIndex] = { ...updated[editingIndex], ...editValues };
+      updated[editingIndex] = { ...updated[editingIndex], ...data };
       setPrizesBack(updated);
-      setEditingIndex(null);
-      setEditValues({});
-      // Exemplo: await PrizesService.update(updated[editingIndex].id, editValues)
-    };
-  const [productTab, setProductTab] = useState<'create' | 'products'>('create');
+    } catch (e) {
+      alert("Erro ao atualizar prêmio. Tente novamente.");
+    }
+    setEditingIndex(null);
+    setEditValues({});
+  };
+
+  const [productTab, setProductTab] = useState<"create" | "products">("create");
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const [prizes, setPrizes] = useState<PrizeRequestDto[]>([]);
-  const [prizesBack, setPrizesBack] = useState<PrizeRequestDto[]>([]);
+  // prizesBack agora é PrizeResponseDto & { id?: string }
+  const [prizesBack, setPrizesBack] = useState<(PrizeResponseDto & { id?: string })[]>([]);
 
-  const [products, setProducts] = useState<Product[]>([
-    {
-      name: "Professional Camera",
-      description: "Camera",
-      price: "R$299",
-      image:
-        "https://images.unsplash.com/photo-1519183071298-a2962be96eec?w=200",
-      tag: "PRODUCT",
-    },
-    {
-      name: "Ultra Smartphone",
-      description: "SMX",
-      price: "R$999",
-      image:
-        "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=200",
-      tag: "PRODUCT",
-    },
-    {
-      name: "Bluetooth Headset",
-      description: "PRO",
-      price: "R$199",
-      image:
-        "https://images.unsplash.com/photo-1518441902110-7f7c37fdfb8b?w=200",
-      tag: "PRODUCT",
-    },
-  ]);
 
+
+  useEffect(() => {
+    const findAllProducts = async () => {
+      try {
+        const data = await ProductService.findAll();
+        setProducts(Array.isArray(data) ? data : []);
+      } catch (error) {}
+    };
+    findAllProducts();
+  }, []);
   const size = 260;
 
   const drawWheel = () => {
@@ -139,23 +242,46 @@ export default function RouletteAdmin() {
   };
 
   const handleSaveConfig = async () => {
-    for (const prize of prizes) {
-      const { id, createdAt, updatedAt, ...rest } = prize as any;
-      const data = {
-        ...rest,
-        probability: Number(rest.probability),
-      };
-      await PrizesService.create(data);
+    setLoading(true);
+    try {
+      for (const prize of prizes) {
+        const { id, createdAt, updatedAt, ...rest } = prize as any;
+        const data = {
+          ...rest,
+          probability: Number(rest.probability),
+        };
+        await PrizesService.create(data);
+      }
+      setPrizes([]);
+      setCreateValues("not");
+      setProductTab("products");
+    } catch (error) {
+      alert("Erro ao salvar prêmio. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-    // Optional: user feedback
-    // alert('Prizes saved!');
   };
 
+  // Remove prêmio do formulário de criação (não da lista principal)
   const removePrize = (i: number) => {
     setPrizes(prizes.filter((_, idx) => idx !== i));
   };
 
+  // Deletar prêmio da API e atualizar lista
+  const handleDeletePrize = useCallback(async () => {
+    if (!deleteId) return;
+    try {
+      await PrizesService.delete(deleteId);
+      setPrizesBack((prev) => prev.filter((p) => String(p.id || "") !== String(deleteId)));
+      setIsDeleteModalOpen(false);
+      setDeleteId(null);
+    } catch (e) {
+      alert("Erro ao deletar prêmio. Tente novamente.");
+    }
+  }, [deleteId]);
 
+  // Busca o nome do prêmio selecionado para deletar
+  const prizeToDelete = prizesBack.find((p) => String(p.id || "") === String(deleteId));
 
   return (
     <div
@@ -167,9 +293,6 @@ export default function RouletteAdmin() {
         width: "100%",
       }}
     >
-
-
-      {/* SEÇÃO: PRÉ-VISUALIZAÇÃO DA ROLETA */}
       <div
         style={{
           background: "#fff",
@@ -180,30 +303,6 @@ export default function RouletteAdmin() {
           textAlign: "center",
         }}
       >
-        <button
-          style={{
-            width: 200,
-            height: 40,
-            background: "#FFD54F",
-            color: "#222",
-            border: "none",
-            borderRadius: 8,
-            fontWeight: 700,
-            fontSize: 16,
-            marginBottom: 10,
-            boxShadow: "0 2px 8px #FFD54F44",
-            cursor: "pointer",
-          }}
-        >
-          <a
-            href="https://giuseppe-vidal-roleta-16hm.vercel.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "#222", textDecoration: "none" }}
-          >
-            Acessar Roleta
-          </a>
-        </button>
         <h4 style={{ margin: 0 }}>Pré-visualização da Roleta</h4>
         {prizesBack.length > 0 ? (
           <canvas
@@ -215,7 +314,7 @@ export default function RouletteAdmin() {
             }}
           />
         ) : (
-          <div style={{ marginTop: 20, color: '#bbb', fontSize: 15 }}>
+          <div style={{ marginTop: 20, color: "#bbb", fontSize: 15 }}>
             Register at least one prize to preview the roulette.
           </div>
         )}
@@ -228,258 +327,375 @@ export default function RouletteAdmin() {
         >
           A roleta acima mostra exatamente como ficará para o cliente.
         </p>
+        <button
+          style={{
+            width: 300,
+            height: 38,
+            background: "#FFD54F",
+            border: "none",
+            borderRadius: 99,
+            fontWeight: 600,
+            fontSize: 16,
+            marginBottom: 10,
+            boxShadow: "0 2px 8px #FFD54F44",
+            cursor: "pointer",
+          }}
+        >
+          <a
+            href="https://giuseppe-vidal-roleta-16hm.vercel.app/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: "#ffffff", textDecoration: "none" }}
+          >
+            Acessar Roleta
+          </a>
+        </button>
       </div>
       {/* SELETOR DE PRODUTO/PRODUTOS */}
       <div style={{ marginBottom: 32 }}>
-        <div style={{
-          display: 'flex',
-          background: '#fff',
-          borderRadius: 32,
-          border: '2px solid #E0E0E0',
-          width: 380,
-          height: 40,
-          alignItems: 'center',
-          position: 'relative',
-          boxShadow: '0 1px 4px #0001',
-        }}>
+        <div
+          style={{
+            display: "flex",
+            background: "#fff",
+            borderRadius: 32,
+            width: 380,
+            height: 37,
+            alignItems: "center",
+            position: "relative",
+            padding: 1,
+          }}
+        >
           <button
-            onClick={() => setProductTab('create')}
+            onClick={() => setProductTab("create")}
             style={{
               flex: 1,
-              height: 35,
-              border: 'none',
-              background: productTab === 'create' ? '#FFD54F' : 'transparent',
-              color: productTab === 'create' ? '#fff' : '#B0B0B0',
+              height: 30,
+              border: "none",
+              background: productTab === "create" ? "#FFD54F" : "transparent",
+              color: productTab === "create" ? "#fff" : "#B0B0B0",
               fontWeight: 500,
-              fontSize: 16,
+              fontSize: 14,
               borderRadius: 32,
-              cursor: 'pointer',
+              cursor: "pointer",
               zIndex: 2,
-              transition: 'background 0.2s',
+              transition: "background 0.2s",
             }}
           >
-            Add product
+            Adicionar Prêmios
           </button>
           <button
-            onClick={() => setProductTab('products')}
+            onClick={() => setProductTab("products")}
             style={{
               flex: 1,
-              height: 35,
-              border: 'none',
-              background: productTab === 'products' ? '#FFD54F' : 'transparent',
-              color: productTab === 'products' ? '#fff' : '#B0B0B0',
+              height: 30,
+              border: "none",
+              background: productTab === "products" ? "#FFD54F" : "transparent",
+              color: productTab === "products" ? "#fff" : "#B0B0B0",
               fontWeight: 500,
-              fontSize: 16,
+              fontSize: 14,
               borderRadius: 32,
-              cursor: 'pointer',
+              cursor: "pointer",
               marginLeft: -32,
               zIndex: 2,
-              transition: 'background 0.2s',
+              transition: "background 0.2s",
             }}
           >
-            Products
+            Produtos
           </button>
         </div>
       </div>
-      {productTab === 'products' && (
+      {productTab === "products" && (
         <div style={{ marginBottom: 32 }}>
-          <div style={{
-            background: '#fff',
-            borderRadius: 12,
-            boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
-            padding: 0,
-            overflow: 'hidden',
-          }}>
-            <div style={{
-              fontWeight: 700,
-              fontSize: 22,
-              color: '#222',
-              padding: '24px 24px 10px 24px',
-            }}>
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: 12,
+              boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
+              padding: 0,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: 22,
+                color: "#222",
+                padding: "24px 24px 10px 24px",
+              }}
+            >
               Registered Products
             </div>
-            <div style={{ width: '100%', overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 600 }}>
+            <div style={{ width: "100%", overflowX: "auto" }}>
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  minWidth: 600,
+                }}
+              >
                 <thead>
-                  <tr style={{ background: '#F5F6F7', color: '#888', fontWeight: 600, fontSize: 15 }}>
-                    <th style={{ padding: '12px 8px', textAlign: 'left' }}>Name</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'left' }}>Description</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'left' }}>Image</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'left' }}>Quantity</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'left' }}>Probability</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'left' }}>Status</th>
-                    <th style={{ padding: '12px 8px', textAlign: 'left' }}></th>
+                  <tr
+                    style={{
+                      background: "#F5F6F7",
+                      color: "#888",
+                      fontWeight: 600,
+                      fontSize: 15,
+                    }}
+                  >
+                    <th style={{ padding: "12px 8px", textAlign: "left" }}>
+                      Name
+                    </th>
+                    <th style={{ padding: "12px 8px", textAlign: "left" }}>
+                      Description
+                    </th>
+                    <th style={{ padding: "12px 8px", textAlign: "left" }}>
+                      Image
+                    </th>
+                    <th style={{ padding: "12px 8px", textAlign: "left" }}>
+                      Quantity
+                    </th>
+                    <th style={{ padding: "12px 8px", textAlign: "left" }}>
+                      Probability
+                    </th>
+                    <th style={{ padding: "12px 8px", textAlign: "left" }}>
+                      Status
+                    </th>
+                    <th style={{ padding: "12px 8px", textAlign: "left" }}></th>
                   </tr>
                 </thead>
                 <tbody>
                   {prizesBack.length === 0 && (
                     <tr>
-                      <td colSpan={6} style={{ color: '#888', textAlign: 'center', padding: 24 }}>
+                      <td
+                        colSpan={6}
+                        style={{
+                          color: "#888",
+                          textAlign: "center",
+                          padding: 24,
+                        }}
+                      >
                         No products registered.
                       </td>
                     </tr>
                   )}
-                  {prizesBack.map((p, i) => (
+                  {prizesBack.map((p, i) =>
                     editingIndex === i ? (
-                      <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#FAFAFA' }}>
-                        <td style={{ padding: '12px 8px', fontWeight: 600 }}>
+                      <tr
+                        key={i}
+                        style={{ background: i % 2 === 0 ? "#fff" : "#FAFAFA" }}
+                      >
+                        <td style={{ padding: "12px 8px", fontWeight: 600 }}>
                           <input
-                            value={editValues.name || ''}
-                            onChange={e => handleEditChange('name', e.target.value)}
-                            style={{ padding: 6, borderRadius: 4, border: '1px solid #ddd', width: 100 }}
+                            value={editValues.name || ""}
+                            onChange={(e) =>
+                              handleEditChange("name", e.target.value)
+                            }
+                            style={{
+                              padding: 6,
+                              borderRadius: 4,
+                              border: "1px solid #ddd",
+                              width: 100,
+                            }}
                           />
                         </td>
-                        <td style={{ padding: '12px 8px' }}>
+                        <td style={{ padding: "12px 8px" }}>
                           <input
-                            value={editValues.description || ''}
-                            onChange={e => handleEditChange('description', e.target.value)}
-                            style={{ padding: 6, borderRadius: 4, border: '1px solid #ddd', width: 100 }}
+                            value={editValues.description || ""}
+                            onChange={(e) =>
+                              handleEditChange("description", e.target.value)
+                            }
+                            style={{
+                              padding: 6,
+                              borderRadius: 4,
+                              border: "1px solid #ddd",
+                              width: 100,
+                            }}
                           />
                         </td>
-                        <td style={{ padding: '12px 8px' }}>
+                        <td style={{ padding: "12px 8px" }}>
                           <input
-                            value={editValues.imageUrl || ''}
-                            onChange={e => handleEditChange('imageUrl', e.target.value)}
-                            style={{ padding: 6, borderRadius: 4, border: '1px solid #ddd', width: 120 }}
+                            value={editValues.imageUrl || ""}
+                            onChange={(e) =>
+                              handleEditChange("imageUrl", e.target.value)
+                            }
+                            style={{
+                              padding: 6,
+                              borderRadius: 4,
+                              border: "1px solid #ddd",
+                              width: 120,
+                            }}
                           />
                         </td>
-                        <td style={{ padding: '12px 8px' }}>
+                        <td style={{ padding: "12px 8px" }}>
                           <input
                             type="number"
                             value={editValues.quantity ?? 1}
                             min={1}
-                            onChange={e => handleEditChange('quantity', Number(e.target.value))}
-                            style={{ padding: 6, borderRadius: 4, border: '1px solid #ddd', width: 60 }}
+                            onChange={(e) =>
+                              handleEditChange(
+                                "quantity",
+                                Number(e.target.value),
+                              )
+                            }
+                            style={{
+                              padding: 6,
+                              borderRadius: 4,
+                              border: "1px solid #ddd",
+                              width: 60,
+                            }}
                           />
                         </td>
-                        <td style={{ padding: '12px 8px' }}>
+                        <td style={{ padding: "12px 8px" }}>
                           <input
                             type="number"
                             value={editValues.probability ?? 1}
                             min={1}
-                            onChange={e => handleEditChange('probability', Number(e.target.value))}
-                            style={{ padding: 6, borderRadius: 4, border: '1px solid #ddd', width: 60 }}
+                            onChange={(e) =>
+                              handleEditChange(
+                                "probability",
+                                Number(e.target.value),
+                              )
+                            }
+                            style={{
+                              padding: 6,
+                              borderRadius: 4,
+                              border: "1px solid #ddd",
+                              width: 60,
+                            }}
                           />
                         </td>
-                        <td style={{ padding: '12px 8px' }}>
+                        <td style={{ padding: "12px 8px" }}>
                           <select
-                            value={editValues.active ? 'active' : 'inactive'}
-                            onChange={e => handleEditChange('active', e.target.value === 'active')}
-                            style={{ padding: 6, borderRadius: 4, border: '1px solid #ddd' }}
+                            value={editValues.active ? "active" : "inactive"}
+                            onChange={(e) =>
+                              handleEditChange(
+                                "active",
+                                e.target.value === "active",
+                              )
+                            }
+                            style={{
+                              padding: 6,
+                              borderRadius: 4,
+                              border: "1px solid #ddd",
+                            }}
                           >
                             <option value="active">Active</option>
                             <option value="inactive">Inactive</option>
                           </select>
                         </td>
-                        <td style={{ padding: '12px 4px', minWidth: 120 }}>
+                        <td style={{ padding: "12px 4px", minWidth: 120 }}>
                           <button
                             onClick={handleEditSave}
                             style={{
-                              background: '#388e3c',
-                              border: 'none',
-                              color: '#fff',
+                              background: "#388e3c",
+                              border: "none",
+                              color: "#fff",
                               borderRadius: 6,
-                              padding: '4px 12px',
+                              padding: "4px 12px",
                               fontWeight: 600,
                               marginRight: 8,
-                              cursor: 'pointer',
+                              cursor: "pointer",
                               fontSize: 14,
-                              transition: 'background 0.2s',
+                              transition: "background 0.2s",
                             }}
-                          >Save</button>
+                          >
+                            Save
+                          </button>
                           <button
                             onClick={handleEditCancel}
                             style={{
-                              background: '#fff',
-                              border: '1px solid #b71c1c',
-                              color: '#b71c1c',
+                              background: "#fff",
+                              border: "1px solid #b71c1c",
+                              color: "#b71c1c",
                               borderRadius: 6,
-                              padding: '4px 12px',
+                              padding: "4px 12px",
                               fontWeight: 600,
-                              cursor: 'pointer',
+                              cursor: "pointer",
                               fontSize: 14,
-                              transition: 'background 0.2s',
+                              transition: "background 0.2s",
                             }}
-                          >Cancel</button>
+                          >
+                            Cancel
+                          </button>
                         </td>
                       </tr>
                     ) : (
-                      <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#FAFAFA' }}>
-                        <td style={{ padding: '12px 8px', fontWeight: 600 }}>{p.name}</td>
-                        <td style={{ padding: '12px 8px' }}>{p.description}</td>
-                        <td style={{ padding: '12px 8px' }}>
+                      <tr
+                        key={i}
+                        style={{ background: i % 2 === 0 ? "#fff" : "#FAFAFA" }}
+                      >
+                        <td style={{ padding: "12px 8px", fontWeight: 600 }}>
+                          {p.name}
+                        </td>
+                        <td style={{ padding: "12px 8px" }}>{p.description}</td>
+                        <td style={{ padding: "12px 8px" }}>
                           {p.imageUrl && (
                             <img
                               src={p.imageUrl}
                               alt={p.name}
-                              style={{ width: 40, height: 40, objectFit: 'cover', borderRadius: 6 }}
+                              style={{
+                                width: 40,
+                                height: 40,
+                                objectFit: "cover",
+                                borderRadius: 6,
+                              }}
                             />
                           )}
                         </td>
-                        <td style={{ padding: '12px 8px' }}>{p.quantity}</td>
-                        <td style={{ padding: '12px 8px' }}>{p.probability}</td>
-                        <td style={{ padding: '12px 8px', color: p.active ? '#388e3c' : '#b71c1c', fontWeight: 600 }}>
-                          {p.active ? 'Active' : 'Inactive'}
+                        <td style={{ padding: "12px 8px" }}>{p.quantity}</td>
+                        <td style={{ padding: "12px 8px" }}>{p.probability}</td>
+                        <td
+                          style={{
+                            padding: "12px 8px",
+                            color: p.active ? "#388e3c" : "#b71c1c",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {p.active ? "Active" : "Inactive"}
                         </td>
-                        <td style={{ padding: '12px 4px', minWidth: 90 }}>
+                        <td
+                          style={{
+                            padding: "12px 4px",
+                            minWidth: 90,
+                            display: "flex",
+                            gap: 8,
+                            alignItems: "center",
+                          }}
+                        >
                           <button
-                            onClick={() => handleEditClick(i)}
-                            style={{
-                              background: '#fff',
-                              border: '1px solid #FFD54F',
-                              color: '#FFD54F',
-                              borderRadius: 6,
-                              padding: '4px 12px',
-                              fontWeight: 600,
-                              marginRight: 8,
-                              cursor: 'pointer',
-                              fontSize: 14,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              transition: 'background 0.2s, color 0.2s',
-                            }}
-                            onMouseEnter={e => {
-                              (e.currentTarget as HTMLButtonElement).style.background = '#FFD54F';
-                              (e.currentTarget as HTMLButtonElement).style.color = '#fff';
-                            }}
-                            onMouseLeave={e => {
-                              (e.currentTarget as HTMLButtonElement).style.background = '#fff';
-                              (e.currentTarget as HTMLButtonElement).style.color = '#FFD54F';
+                            className={styles.iconBtn}
+                            type="button"
+                            aria-label="Excluir"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDeleteId(p.id || null);
+                              setIsDeleteModalOpen(true);
                             }}
                           >
-                            <svg width="16" height="16" fill="currentColor" style={{marginRight: 2}} viewBox="0 0 20 20"><path d="M15.41 2.59a2 2 0 0 0-2.83 0l-8.09 8.09a2 2 0 0 0-.58 1.41V16a2 2 0 0 0 2 2h3.91a2 2 0 0 0 1.41-.59l8.09-8.09a2 2 0 0 0 0-2.83l-4.91-4.91zm-2.12 1.41 4.91 4.91-8.09 8.09H4V12.8l8.09-8.09z"></path></svg>
+                            <FiTrash2 size={15} />
                           </button>
+                          <ConfirmDeleteModal
+                            isOpen={isDeleteModalOpen}
+                            title="Deseja remover este prêmio?"
+                            itemName={prizeToDelete?.name || ""}
+                            onClose={() => {
+                              setIsDeleteModalOpen(false);
+                              setDeleteId(null);
+                            }}
+                            onConfirm={handleDeletePrize}
+                          />
                           <button
-                            style={{
-                              background: '#fff',
-                              border: '1px solid #b71c1c',
-                              color: '#b71c1c',
-                              borderRadius: 6,
-                              padding: '5px 5px',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              fontSize: 14,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              transition: 'background 0.2s, color 0.2s',
-                            }}
-                            onMouseEnter={e => {
-                              (e.currentTarget as HTMLButtonElement).style.background = '#b71c1c';
-                              (e.currentTarget as HTMLButtonElement).style.color = '#fff';
-                            }}
-                            onMouseLeave={e => {
-                              (e.currentTarget as HTMLButtonElement).style.background = '#fff';
-                              (e.currentTarget as HTMLButtonElement).style.color = '#b71c1c';
-                            }}
+                            className={styles.iconBtnEdit}
+                            type="button"
+                            aria-label="Editar"
+                            onClick={() => handleEditClick(i)}
                           >
-                            <svg width="16" height="16" fill="currentColor" style={{marginRight: 2}} viewBox="0 0 20 20"><path d="M6 7V6a4 4 0 1 1 8 0v1h5v2h-1v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9H1V7h5zm2-1a2 2 0 1 1 4 0v1H8V6zm-4 3v9h12V9H4z"></path></svg>
+                            <Edit2 size={15} />
                           </button>
                         </td>
                       </tr>
-                    )
-                  ))}
+                    ),
+                  )}
                 </tbody>
               </table>
             </div>
@@ -487,7 +703,7 @@ export default function RouletteAdmin() {
         </div>
       )}
 
-      {productTab === 'create' && (
+      {productTab === "create" && (
         <div
           style={{
             background: "#fff",
@@ -505,159 +721,182 @@ export default function RouletteAdmin() {
               marginBottom: 18,
             }}
           >
-            <h2 style={{ margin: 0, color: "#222" }}>Edit Prizes</h2>
-            <button
-              onClick={addPrize}
-              style={{
-                background: "linear-gradient(90deg,#FFD54F,#FFB300)",
-                border: "none",
-                padding: "10px 22px",
-                borderRadius: 8,
-                fontWeight: 700,
-                fontSize: 16,
-                color: "#222",
-                boxShadow: "0 2px 8px #FFD54F44",
-                cursor: "pointer",
-                transition: "background 0.2s",
-              }}
-            >
-              + Adicionar Prêmio
-            </button>
+            <h3 style={{ margin: 0, color: "#222" }}>Adicionar Prêmios</h3>
           </div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 18 }}>
-            {prizes.map((p, i) => (
-              <div
-                key={i}
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 18,
+              width: "100%",
+              height: 400,
+              alignItems: "center",
+              justifyContent: prizes.length === 0 ? "center" : "flex-start",
+            }}
+          >
+            {createValues === "not" && (
+              <button
+                onClick={() => {
+                  setCreateValues("new");
+                  addPrize();
+                }}
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
-                  marginBottom: 18,
-                  border: "1px solid #eee",
+                  background: "linear-gradient(90deg,#FFD54F,#FFB300)",
+                  border: "none",
+                  width: 180,
+                  height: 38,
                   borderRadius: 8,
-                  padding: 14,
-                  background: "#fafafa",
-                  position: "relative",
-                  minWidth: 260,
-                  boxShadow: "0 1px 4px #FFD54F22",
+                  fontWeight: 600,
+                  fontSize: 16,
+                  color: "#ffffff",
+                  boxShadow: "0 2px 8px #FFD54F44",
+                  cursor: "pointer",
+                  transition: "background 0.2s",
                 }}
               >
-                <button
-                  onClick={() => removePrize(i)}
+                + Novo Prêmio
+              </button>
+            )}
+            {createValues === "new" &&
+              prizes.map((p, i) => (
+                <div
+                  key={i}
                   style={{
-                    position: "absolute",
-                    right: 8,
-                    top: 8,
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
-                    fontSize: 18,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 30,
+                    marginBottom: 18,
+                    border: "1px solid #eee",
+                    borderRadius: 8,
+                    padding: 14,
+                    background: "#fafafa",
+                    position: "relative",
+                    width: "100%",
+                    height: "100%",
+                    boxShadow: "0 1px 4px #FFD54F22",
                   }}
                 >
-                  ✕
-                </button>
-
-                <input
-                  placeholder="Prize Name"
-                  value={p.name}
-                  onChange={(e) =>
-                    handlePrizeFieldChange(i, "name", e.target.value)
-                  }
-                  style={{
-                    padding: 8,
-                    borderRadius: 6,
-                    border: "1px solid #ddd",
-                  }}
-                />
-                <input
-                  placeholder="Description"
-                  value={p.description}
-                  onChange={(e) =>
-                    handlePrizeFieldChange(i, "description", e.target.value)
-                  }
-                  style={{
-                    padding: 8,
-                    borderRadius: 6,
-                    border: "1px solid #ddd",
-                  }}
-                />
-                <input
-                  placeholder="Image URL"
-                  value={p.imageUrl}
-                  onChange={(e) =>
-                    handlePrizeFieldChange(i, "imageUrl", e.target.value)
-                  }
-                  style={{
-                    padding: 8,
-                    borderRadius: 6,
-                    border: "1px solid #ddd",
-                  }}
-                />
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input
-                    type="number"
-                    placeholder="Quantity"
-                    value={p.quantity}
-                    min={1}
-                    onChange={(e) =>
-                      handlePrizeFieldChange(
-                        i,
-                        "quantity",
-                        Number(e.target.value),
-                      )
-                    }
+                  <button
+                    onClick={() => removePrize(i)}
                     style={{
-                      padding: 8,
-                      borderRadius: 6,
-                      border: "1px solid #ddd",
-                      width: 120,
-                    }}
-                  />
-                  <input
-                    type="number"
-                    placeholder="Probability"
-                    value={p.probability}
-                    min={1}
-                    onChange={(e) =>
-                      handlePrizeFieldChange(
-                        i,
-                        "probability",
-                        Number(e.target.value),
-                      )
-                    }
-                    style={{
-                      padding: 8,
-                      borderRadius: 6,
-                      border: "1px solid #ddd",
-                      width: 120,
-                    }}
-                  />
-                  <label
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                      fontSize: 13,
+                      position: "absolute",
+                      right: 8,
+                      top: 8,
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                      fontSize: 18,
                     }}
                   >
+                    ✕
+                  </button>
+
+                  <input
+                    placeholder="Prize Name"
+                    value={p.name}
+                    onChange={(e) =>
+                      handlePrizeFieldChange(i, "name", e.target.value)
+                    }
+                    style={{
+                      padding: 15,
+                      borderRadius: 6,
+                      border: "1px solid #ddd",
+                      marginTop: 50,
+                      fontSize: 16,
+                    }}
+                  />
+                  <input
+                    placeholder="Description"
+                    value={p.description}
+                    onChange={(e) =>
+                      handlePrizeFieldChange(i, "description", e.target.value)
+                    }
+                    style={{
+                      padding: 15,
+                      borderRadius: 6,
+                      border: "1px solid #ddd",
+                      fontSize: 16,
+                    }}
+                  />
+                  <input
+                    placeholder="Image URL"
+                    value={p.imageUrl}
+                    onChange={(e) =>
+                      handlePrizeFieldChange(i, "imageUrl", e.target.value)
+                    }
+                    style={{
+                      padding: 15,
+                      borderRadius: 6,
+                      border: "1px solid #ddd",
+                      fontSize: 16,
+                    }}
+                  />
+                  <div style={{ display: "flex", gap: 8 }}>
                     <input
-                      type="checkbox"
-                      checked={p.active}
+                      type="number"
+                      placeholder="Quantity"
+                      value={p.quantity}
+                      min={1}
                       onChange={(e) =>
-                        handlePrizeFieldChange(i, "active", e.target.checked)
+                        handlePrizeFieldChange(
+                          i,
+                          "quantity",
+                          Number(e.target.value),
+                        )
                       }
-                    />{" "}
-                    Active
-                  </label>
+                      style={{
+                        padding: 15,
+                        borderRadius: 6,
+                        border: "1px solid #ddd",
+                        width: 120,
+                        fontSize: 16,
+                      }}
+                    />
+                    <input
+                      type="number"
+                      placeholder="Probability"
+                      value={p.probability}
+                      min={1}
+                      onChange={(e) =>
+                        handlePrizeFieldChange(
+                          i,
+                          "probability",
+                          Number(e.target.value),
+                        )
+                      }
+                      style={{
+                        padding: 10,
+                        borderRadius: 6,
+                        border: "1px solid #ddd",
+                        width: 120,
+                      }}
+                    />
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        fontSize: 13,
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={p.active}
+                        onChange={(e) =>
+                          handlePrizeFieldChange(i, "active", e.target.checked)
+                        }
+                      />{" "}
+                      Active
+                    </label>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
           <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
             <button
               onClick={handleSaveConfig}
               style={{
-                background: "#222",
+                background: "linear-gradient(90deg,#FFD54F,#FFB300)",
                 color: "#fff",
                 border: "none",
                 padding: "12px 28px",
@@ -665,114 +904,163 @@ export default function RouletteAdmin() {
                 fontWeight: 700,
                 fontSize: 16,
                 cursor: "pointer",
-                boxShadow: "0 2px 8px #2222",
               }}
             >
-              Save Configuration
+              {loading ? "Carregando..." : "Adicionar"}
             </button>
           </div>
         </div>
       )}
 
-      {/* SEÇÃO: PRODUTOS EM DESTAQUE */}
-      <div
-        style={{
-          background: "#fff",
-          borderRadius: 12,
-          padding: 24,
-          boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
-        }}
-      >
-        <h3 style={{ marginTop: 0 }}>Produtos em Destaque</h3>
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            marginBottom: 20,
-          }}
-        >
-          <input
-            placeholder="ID do Produto"
-            style={{
-              padding: 10,
-              borderRadius: 8,
-              border: "1px solid #ddd",
-            }}
-          />
-          <input
-            placeholder="Buscar Rápido"
-            style={{
-              flex: 1,
-              padding: 10,
-              borderRadius: 8,
-              border: "1px solid #ddd",
-            }}
-          />
-          <button
-            onClick={() => setProducts([
-              ...products,
-              { name: "", description: "", price: "", image: "", tag: "" },
-            ])}
-            style={{
-              background: "#FFC107",
-              border: "none",
-              padding: "10px 16px",
-              borderRadius: 8,
-              fontWeight: 600,
-              cursor: "pointer",
-            }}
-          >
-            Add Product
-          </button>
-        </div>
-        <div style={{ display: "flex", gap: 20 }}>
-          {products.map((p, i) => (
-            <div
-              key={i}
-              style={{
-                width: 180,
-                border: "1px solid #eee",
-                borderRadius: 10,
-                padding: 10,
-                position: "relative",
-              }}
-            >
-              <button
-                style={{
-                  position: "absolute",
-                  right: 6,
-                  top: 6,
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                }}
-              >
-                ✕
-              </button>
-              <img
-                src={p.image}
-                style={{
-                  width: "100%",
-                  height: 90,
-                  objectFit: "cover",
-                  borderRadius: 6,
-                }}
+
+      {/* SEÇÃO: PRODUTOS EM DESTAQUE (PADRÃO PRODUTOS) */}
+      <div className={styles.gridContainer}>
+        <div className={styles.filters}>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <div className={styles.search}>
+              <FiSearch className={styles.searchIcon} />
+              <input
+                className={styles.searchInput}
+                type="text"
+                placeholder="Buscar produtos..."
+                value={query}
+                onChange={e => setQuery(e.target.value)}
               />
-              <p
-                style={{
-                  fontWeight: 600,
-                  fontSize: 14,
-                  margin: "10px 0 4px",
-                }}
-              >
-                {p.name}
-              </p>
-              <span style={{ fontSize: 12, color: "#777" }}>{p.description}</span>
             </div>
-          ))}
+            <CustomSelect
+              options={LISTPAG.map((c) => ({ value: String(c.value), label: String(c.value) }))}
+              value={String(pageSize)}
+              onChange={(value: string) => {
+                setPageSize(Number(value));
+                setPage(1);
+              }}
+            />
+          </div>
+          <div className={styles.filterActions}>
+            <CustomSelect
+              options={CATEGORIES.map((c) => ({ value: c.key, label: c.label }))}
+              value={activeCat}
+              onChange={(value) => setActiveCat(value as CategoryKey)}
+            />
+            <div style={{ position: "relative" }}>
+              <button
+                className={styles.filterBtn}
+                type="button"
+                onClick={() => setIsFilterModalOpen(true)}
+              >
+                <FiFilter />
+                Filtros
+              </button>
+              <FilterModal
+                isOpen={isFilterModalOpen}
+                onClose={() => setIsFilterModalOpen(false)}
+                onApply={(newFilters) => {
+                  setFilters(newFilters);
+                  setActiveCat(newFilters.category);
+                }}
+                categories={CATEGORIES}
+                initialFilters={filters}
+              />
+            </div>
+          </div>
+        </div>
+        <div className={styles.grid}>
+          {paginated.length === 0 ? (
+            <div className={styles.emptyState}>
+              <h3 className={styles.emptyTitle}>Nenhum produto encontrado</h3>
+              <p className={styles.emptySubtitle}>
+                Tente ajustar os filtros ou adicione novos produtos.
+              </p>
+            </div>
+          ) : (
+            paginated.map((p: ProductResponse) => (
+              <EntityCard
+              height={350}
+                lowStock={p.lowStock}
+                key={p.id}
+                id={p.id}
+                name={p.name}
+                description={p.description}
+                category={p.category}
+                price={p.price}
+                promoPrice={p.promoPrice}
+                imageUrl={[
+                  ...(p.images || []),
+                  ...(p.variations || [])
+                    .filter((v: any) => v.imageUrl)
+                    .map((v: any) => ({
+                      url: Array.isArray(v.imageUrl) ? (v.imageUrl[0] || "") : (v.imageUrl || ""),
+                      fileName: v.name || "",
+                      id: v.id || "",
+                      isPrimary: false,
+                    })),
+                ]}
+                stock={p.stock}
+                available
+                color={p.color}
+                colors={Array.from(
+                  new Set([
+                    ...(p.color ? [p.color] : []),
+                    ...((p.variations || [])
+                      .map((v: any) => v.color)
+                      .filter(Boolean) as string[]),
+                  ]),
+                )}
+                size={p.size}
+                sizes={Array.from(
+                  new Set([
+                    ...(p.size ? [p.size] : []),
+                    ...((p.variations || [])
+                      .map((v: any) => v.size)
+                      .filter(Boolean) as string[]),
+                  ]),
+                )}
+                variations={p.variations}
+                status={p.status}
+                onEdit={() => {}}
+                onDelete={undefined}
+                onToggleAvailable={() => {}}
+                navigateTo={`/product-details/${p.id}`}
+              />
+            ))
+          )}
+        </div>
+        <div className={styles.bottom}>
+          <div className={styles.counter}>
+            Mostrando {paginated.length} de {total} produtos
+          </div>
+          <div className={styles.pagination}>
+            <button
+              className={styles.pageBtn + (currentPage === 1 ? ' ' + styles.pageBtnDisabled : '')}
+              type="button"
+              onClick={() => setPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              aria-label="Pagina anterior"
+            >
+              ‹
+            </button>
+            {pages.map((p) => (
+              <button
+                key={p}
+                className={styles.pageBtn + (p === currentPage ? ' ' + styles.pageBtnActive : '')}
+                type="button"
+                onClick={() => setPage(p)}
+              >
+                {p}
+              </button>
+            ))}
+            <button
+              className={styles.pageBtn + (currentPage === maxPage ? ' ' + styles.pageBtnDisabled : '')}
+              type="button"
+              onClick={() => setPage(Math.min(maxPage, currentPage + 1))}
+              disabled={currentPage === maxPage}
+              aria-label="Proxima pagina"
+            >
+              ›
+            </button>
+          </div>
         </div>
       </div>
     </div>
   );
-  
 }

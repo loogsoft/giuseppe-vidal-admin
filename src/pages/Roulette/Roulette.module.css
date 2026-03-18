@@ -1,3 +1,135 @@
+/* --- PADRÃO DA GRID DE PRODUTOS (copiado de Product.module.css) --- */
+.filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+.search {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  border-radius: 20px;
+  height: 30px;
+  color: var(--text-muted);
+  max-width: 400px;
+  padding: 0 12px;
+  transition: all 0.2s ease;
+}
+.search:hover {
+  border-color: #000;
+}
+.search:focus-within {
+  border-color: #FFC83D;
+  box-shadow: 0 0 0 2px rgba(255, 200, 61, 0.2);
+}
+.searchIcon {
+  font-size: 16px;
+  color: var(--text-muted);
+}
+.searchInput {
+  border: none;
+  outline: none;
+  min-width: 400px;
+  width: 100%;
+  font-size: 12px;
+  color: var(--text-primary);
+  background: transparent;
+}
+.searchInput::placeholder {
+  color: var(--text-muted);
+}
+.filterActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.SelectQuantity {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 20px;
+  border: 1px solid var(--border-default);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 12px;
+}
+.gridContainer {
+  padding: 20px;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  box-shadow: 0 12px 24px rgba(17, 24, 39, 0.08);
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+  gap: 30px;
+  padding: 20px 0;
+  align-items: start;
+}
+.bottom {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+.counter {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+}
+.pagination {
+  display: flex;
+  gap: 8px;
+}
+.pageBtn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border-default);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.pageBtn:hover:not(.pageBtnDisabled):not(.pageBtnActive) {
+  border-color: #000;
+  background: var(--surface-muted);
+}
+.pageBtnActive {
+  background: var(--highlight-primary);
+  color: #ffffff;
+  border: 1px solid var(--highlight-primary);
+}
+.pageBtnDisabled {
+  opacity: 0.5;
+  cursor: default;
+}
+@media (max-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(220px, 1fr));
+  }
+}
+@media (max-width: 700px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
 .rouletteRoot {
   padding: 30px;
   font-family: Inter, sans-serif;
@@ -15,6 +147,70 @@
   margin-bottom: 32px;
   box-shadow: 0 1px 4px #0001;
 }
+.cardActions {
+  width: 80px;
+  height: 40px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 8px;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.iconBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 1px solid var(--border-default);
+  background: var(--surface);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #ef44444b;
+  color: #ff000085;
+}
+
+.iconBtn:hover {
+  background: #ef4444;
+  color: #ffffff;
+  border-color: #ef4444;
+  transform: scale(1.05);
+}
+
+.iconBtnEdit {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(255, 200, 61, 0.286);
+  color: var(--highlight-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(255, 200, 61, 0.2);
+  transition: all 0.2s ease;
+  margin-right: 4px;
+}
+
+.iconBtnEdit:hover {
+  background: #FFD54F;
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.card:hover .cardActions {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
 .tabBtn {
   flex: 1;
   height: 35px;
@@ -23,7 +219,7 @@
   color: #B0B0B0;
   font-weight: 500;
   font-size: 16px;
-  border-radius: 32px;
+  border-radius: 30px;
   cursor: pointer;
   z-index: 2;
   transition: background 0.2s, color 0.2s;

@@ -26,6 +26,8 @@ type BaseProps = {
   id: string;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  width?: string | number;
+  height?: string | number;
 };
 
 type ProductProps = BaseProps & {
@@ -270,6 +272,10 @@ export default function EntityCard(props: Props) {
   return (
     <div
       className={`${styles.card} ${styles.EntityCard}`}
+      style={{
+        ...(props.width ? { width: typeof props.width === "number" ? props.width + "px" : props.width } : {}),
+        ...(props.height ? { height: typeof props.height === "number" ? props.height + "px" : props.height } : {}),
+      }}
       onClick={() =>
         props.navigateTo ? navigate(props.navigateTo) : undefined
       }
